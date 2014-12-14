@@ -81,6 +81,9 @@
                 if(e == "<?php echo $this->translate('Apply backup');?>"){
                     url = '<?php echo $this->websiteUrl;?>api/toaster/themes/importBackup/1';
                 }
+                if(e == "<?php echo $this->translate('Clean database');?>"){
+                    url = '<?php echo $this->websiteUrl;?>api/toaster/themes/cleanData/1';
+                }
                 $.ajax({
                     type     : "GET",
                     dataType : 'json',
@@ -93,6 +96,7 @@
             }, {
                 button_1       : "<?php echo $this->translate('Backup theme');?>",
                 button_2       : "<?php echo $this->translate('Apply backup');?>",
+                button_3       : "<?php echo $this->translate('Clean database');?>",
                 button_cancel  : "<?php echo $this->translate('Cancel');?>",
                 reverseButtons : true
             });

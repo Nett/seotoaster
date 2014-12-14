@@ -120,6 +120,11 @@ class Api_Toaster_Themes extends Api_Service_Abstract {
             $this->_cacheHelper->clean(false, false);
             return array('responseText' => $this->_translator->translate('Backup theme uploaded!'));
         }
+        if($this->_request->getParam('cleanData', false)){
+            $this->_cleanSql();
+            $this->_cacheHelper->clean(false, false);
+            return array('responseText' => $this->_translator->translate('Database cleaned!'));
+        }
 
 		// if parameter 'name' specified in the query, we assume user is trying to download a theme
 		if ($this->_request->has('name')) {
@@ -307,6 +312,64 @@ class Api_Toaster_Themes extends Api_Service_Abstract {
 			}
 
 			$dbAdapter->query('SET foreign_key_checks = 1;');
+			$dbAdapter->commit();
+		} catch (Exception $e) {
+			Tools_System_Tools::debugMode() && error_log($e->getMessage());
+			$dbAdapter->rollBack();
+			return false;
+		}
+	}
+
+	private function _cleanSql() {
+		try {
+			/**
+			 * @var $dbAdapter Zend_Db_Adapter_Abstract
+			 */
+			$dbAdapter = Zend_Registry::get('dbAdapter');
+			$dbAdapter->beginTransaction();
+			$dbAdapter->query('SET foreign_key_checks = 0;');
+
+			$tableList = array("page", "container", "featured_area", "page_fa", "page_has_option", "form",  "plugin_newslog_news");
+
+            foreach ($tableList as $table) {
+                $dbAdapter->delete($table);
+            }
+            $index = array(
+                "id"                  => "1",
+                "template_id"         => "index",
+                "parent_id"           => "0",
+                "nav_name"            => "Home",
+                "meta_description"    => "",
+                "meta_keywords"       => "",
+                "header_title"        => "Home",
+                "h1"                  => "Home",
+                "url"                 => "index.html",
+                "teaser_text"         => "",
+                "last_update"         => "2012-06-20 11:30:39",
+                "is_404page"          => "0",
+                "show_in_menu"        => "1",
+                "order"               => "0",
+                "weight"              => "0",
+                "silo_id"             => null,
+                "targeted_key_phrase" => "",
+                "protected"           => "0",
+                "system"              => "0",
+                "draft"               => "0",
+                "publish_at"          => null,
+                "news"                => "0",
+                "err_login_landing"   => "0",
+                "mem_landing"         => "0",
+                "signup_landing"      => "0",
+                "checkout"            => "0",
+                "preview_image"       => null
+            );
+
+            try {
+                $dbAdapter->insert("page", $index);
+            } catch (Exception $exc) {
+                Tools_System_Tools::debugMode() && error_log($exc->getMessage());
+            }
+
 			$dbAdapter->commit();
 		} catch (Exception $e) {
 			Tools_System_Tools::debugMode() && error_log($e->getMessage());
