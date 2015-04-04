@@ -44,10 +44,10 @@ class Widgets_User_Base extends Widgets_Abstract {
         if (empty($this->_options)) {
             throw new Exceptions_SeotoasterWidgetException('No options provided');
         }
-
-        if (in_array('readonly', $this->_options)) {
-            $this->_view->readonly = $this->_options[1];
-            unset($this->_options[1]);
+        $isReadOnly = array_search('readonly', $this->_options);
+        if ($isReadOnly !== false) {
+            $this->_view->readonly = $this->_options[$isReadOnly];
+            unset($this->_options[$isReadOnly]);
         }
         if (is_numeric(reset($this->_options))) {
             $userId = array_shift($this->_options);
@@ -81,6 +81,31 @@ class Widgets_User_Base extends Widgets_Abstract {
     public function __call($attrName, $arguments) {
         if (preg_match('/^_render/', $attrName)) {
             $attrName = mb_strtolower(mb_strcut($attrName, 7));
+            // Get element's options
+            $attrType = array_search('attrType', $this->_options);
+            if($attrType !== false) {
+                $this->_view->attrType = trim($this->_options[$attrType + 1]);
+                unset($this->_options[$attrType]);
+                unset($this->_options[$attrType + 1]);
+            }
+
+            $attrValue = array_search('attrValue', $this->_options);
+            if($attrValue !== false) {
+                $this->_view->attrValue = $this->_options[$attrValue + 1];
+
+                if($this->_view->attrType === Tools_System_Tools::HTML_INPUT_TYPE_RADIO ||
+                    $this->_view->attrType === Tools_System_Tools::HTML_INPUT_TYPE_SELECT) {
+                    $attrValues = explode(',', $this->_options[$attrValue + 1]);
+                    $attrValues = array_combine($attrValues, $attrValues);
+                    if($this->_view->attrType === Tools_System_Tools::HTML_INPUT_TYPE_SELECT) {
+                        array_unshift($attrValues, '');
+                    }
+                    $this->_view->attrValue = $attrValues;
+                }
+                unset($this->_options[$attrValue]);
+                unset($this->_options[$attrValue + 1]);
+            }
+
             if (!empty($this->_options)) {
                 $attrName = array_merge(array($attrName), $this->_options);
                 $attrName = implode('_', $attrName);
@@ -94,6 +119,9 @@ class Widgets_User_Base extends Widgets_Abstract {
             } else {
                 // or try to get attribute value
                 $value = $this->_user->getAttribute($attrName);
+                if($this->_view->attrType === Tools_System_Tools::HTML_INPUT_TYPE_CHECKBOX) {
+                    $value = explode(',', $value);
+                }
             }
 
             if ($this->_editableMode) {
