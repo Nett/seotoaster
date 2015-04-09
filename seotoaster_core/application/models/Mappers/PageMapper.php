@@ -225,18 +225,25 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $this->fetchAll($where);
     }
 
-    public function findByUrl($pageUrl)
+    /**
+     * @param  string $pageUrl
+     * @param  string $lang
+     * @return mixed
+     */
+    public function findByUrl($pageUrl, $lang = null)
     {
         if (!$pageUrl) {
             $pageUrl = Helpers_Action_Website::DEFAULT_PAGE;
         }
-        $entry = $this->getDbTable()->findByUrl($pageUrl);
+
+        $entry = $this->getDbTable()->findByUrl($pageUrl, $lang);
 
         if (!$entry) {
             return null;
         }
 
         $entry = array_merge($entry, array('extraOptions' => $this->getDbTable()->fetchPageOptions($entry['id'])));
+
         return new $this->_model($entry);
     }
 
@@ -468,5 +475,14 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
     {
         $where = $this->getDbTable()->getAdapter()->quoteInto("parent_id =?", $parentId);
         return $this->getDbTable()->update(array('draft'=>0, 'system'=>0), $where);
+    }
+
+    public function getCurrentPageLocalData($defaultLangId)
+    {
+        $query = $this->getDbTable()->getAdapter()->select()
+            ->from($this->getDbTable()->info('name'), array('lang', 'id', 'url'))
+            ->where('default_lang_id = ?', $defaultLangId);
+
+        return $this->getDbTable()->getAdapter()->fetchAssoc($query);
     }
 }

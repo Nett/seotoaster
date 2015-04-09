@@ -15,9 +15,15 @@
 	if($this->sambaOptimized):
 		$optimizedCheck = '<label class="ml2">' . $this->formCheckbox('sambaOptimized', $this->sambaOptimized, array('checked' => $this->sambaOptimized, 'id' => 'toggle-optimized')) . '&nbsp;' . $this->translate('Optimized') . '</label>';
 	endif;
-	echo $this->partial('admin' . DIRECTORY_SEPARATOR . '_header.phtml', array('innerHeaderHtml' => $draftOrLive . $optimizedCheck. $externalLink, 'helpSection' => $this->helpSection));
+	echo $this->partial(
+		'admin'.DIRECTORY_SEPARATOR.'_header.phtml',
+		array(
+			'innerHeaderHtml' => $draftOrLive.$optimizedCheck.$externalLink,
+			'helpSection'     => $this->helpSection,
+			'localSection'    => $this->localSection
+		)
+	);
 	?>
-
 	<div id="templatelist" class="show-right seotoaster"></div>
 	<div id="falist" class="show-right seotoaster">
 		<div class="header">

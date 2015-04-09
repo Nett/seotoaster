@@ -23,6 +23,8 @@ class Application_Model_Models_Container extends Application_Model_Models_Abstra
 
 	protected $_containerType = self::TYPE_REGULARCONTENT;
 
+	protected $_lang          = '';
+
 	protected $_pageId        = 0;
 
 	protected $_name          = '';

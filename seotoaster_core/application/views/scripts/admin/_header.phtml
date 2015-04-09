@@ -3,6 +3,12 @@
 <?php endif;?>
 
 <div class="closebutton">
+	<?php if (isset($this->localSection)) :
+		foreach ($this->localSection as $key => $val) : ?>
+			<a href="<?php echo $val['href']; ?>"><?php echo $val['name']; ?></a>
+		<?php endforeach;
+	endif; ?>
+
 	<?php if(isset($this->helpSection)){
         echo $this->toasterHelp($this->helpSection, $this->hashMap);
     } ?>

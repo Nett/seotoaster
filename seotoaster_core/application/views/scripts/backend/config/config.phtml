@@ -6,6 +6,16 @@
         $('input[title], .tooltip').tooltip({
             track: true
         });
+
+        // Join localizations for save
+        var localFilds = $('#localizationForm-config');
+        localFilds.on('change', 'input.lang-select', function() {
+            $('#activeLocalList', localFilds).val(
+                $(':checked', localFilds).map(function() {
+                    return this.getAttribute('data-lang');
+                }).get().join(',')
+            );
+        });
     });
 </script>
 <div class="seotoaster container">
@@ -22,6 +32,7 @@
                 <li><a href="#security-config"><?php echo $this->translate('Admin access'); ?></a></li>
                 <li><a href="#advanced-config"><?php echo $this->translate('Advanced'); ?></a></li>
                 <li><a href="#securityForm-config"><?php echo $this->translate('Security'); ?></a></li>
+                <li><a href="#localizationForm-config"><?php echo $this->translate('Localization'); ?></a></li>
             <?php endif; ?>
         </ul>
         <fieldset id="general-config" class="content-small-footer pr0 pl0">
@@ -147,6 +158,32 @@
                             'Get your own reCAPTCHA key here now.'
                         ); ?></a>
                 </div>
+            </fieldset>
+            <fieldset id="localizationForm-config" class="content-small-footer scroll">
+                <h3><?php echo $this->translate('Select website localization'); ?>:</h3>
+                <div class="column_3 full-width">
+                    <?php
+                    $activeLocalList = $this->configForm->getElement('activeLocalList')->getValue();
+                    $activeLocalList = !empty($activeLocalList) ? explode(',', $activeLocalList) : array();
+                    foreach ($this->langList as $key => $lang):
+                    if ($this->langDefault !== $key):
+                    ?>
+                    <label class="pointer background" for="lang-<?php echo $lang; ?>">
+                        <input id="lang-<?php echo $key; ?>"
+                               class="lang-select fl-right switcher"
+                               type="checkbox"
+                               data-lang="<?php echo $key; ?>"
+                               name="localization-<?php echo $key; ?>"
+                               <?php echo (in_array($key, $activeLocalList, true)) ? 'checked="checked"' : ''; ?>>
+                               <img class="align-baseline"
+                                    border="0"
+                                    alt="<?php echo $lang; ?>"
+                                    src="<?php echo $this->websiteUrl.'system/images/flags/'.$key.'.png'; ?>">
+                    </label>
+                    <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <?php echo $this->configForm->getElement('activeLocalList')->renderViewHelper(); ?>
             </fieldset>
         <?php endif; ?>
         <?php echo $this->configForm->getElement('submit')->renderViewHelper(); ?>

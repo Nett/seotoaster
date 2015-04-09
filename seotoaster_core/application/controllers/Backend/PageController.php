@@ -240,7 +240,33 @@ class Backend_PageController extends Zend_Controller_Action {
         $this->view->sambaOptimized   = $page->getOptimized();
 
         // page help section
-        $this->view->helpSection = ($pageId) ? 'editpage' : 'addpage';
+        $this->view->helpSection  = ($pageId) ? 'editpage' : 'addpage';
+
+        // Lang section
+        $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
+        if (sizeof($activeLocalList) >= 1) {
+            $a     = $this->_helper->website->getUrl().'backend/backend_page/page/';
+            $links = array();
+            $pages = $mapper->getCurrentPageLocalData($page->getDefaultLangId());
+            foreach ($activeLocalList as $key => $val) {
+                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($key))) {
+                    continue;
+                }
+
+                if (isset($pages[$langCode])) {
+                    $links[$key] = array('href' => $a.'id/'.$pages[$langCode]['id'], 'name' => $val);
+                }
+                else {
+                    $links[$key] = array('href' => $a, 'name' => $val);
+                }
+            }
+
+            $this->view->localSection = $links;
+        }
+
+
+
+
 
         if($page->getOptimized()) {
             $pageForm->lockFields(array('h1', 'headerTitle', 'url', 'navName', 'metaDescription', 'metaKeywords', 'teaserText'));

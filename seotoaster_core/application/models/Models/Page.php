@@ -50,6 +50,10 @@ class Application_Model_Models_Page extends Application_Model_Models_Abstract im
 
     protected $_url               = '';
 
+	protected $_defaultLangId     = 0;
+
+	protected $_lang              = '';
+
     protected $_h1                = '';
 
     protected $_teaserText        = '';
@@ -355,6 +359,28 @@ class Application_Model_Models_Page extends Application_Model_Models_Abstract im
     {
         return $this->_externalLinkStatus;
     }
+
+	public function getDefaultLangId()
+	{
+		return $this->_defaultLangId;
+	}
+
+	public function setDefaultLangId($defaultLangId)
+	{
+		$this->_defaultLangId = $defaultLangId;
+		return $this;
+	}
+
+	public function getLang()
+	{
+		return $this->_lang;
+	}
+
+	public function setLang($lang)
+	{
+		$this->_lang = $lang;
+		return $this;
+	}
 
     /**
      * Set an extra options for the page

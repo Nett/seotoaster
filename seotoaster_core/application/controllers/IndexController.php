@@ -22,6 +22,16 @@ class IndexController extends Zend_Controller_Action {
 		    $this->_helper->session->refererUrl = $refererUrl;
 	    }
 
+		// Getting language
+		/**$language = $this->_helper->config->getConfig('language');
+		if (null !== ($userLanguage = $this->getRequest()->getCookie('userLanguage', null))) {
+			$localList = $this->_helper->config->getConfig('activeLocalList');
+			if (!empty($localList) && in_array($userLanguage, explode(',', $localList), true)) {
+				$language = $userLanguage;
+			}
+		}
+		$language = Zend_Locale::getLocaleToTerritory($language);*/
+
 		// Getting requested url. If url is not specified - get index.html
 		$pageUrl = filter_var($this->getRequest()->getParam('page', Helpers_Action_Website::DEFAULT_PAGE), FILTER_SANITIZE_STRING);
 

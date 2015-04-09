@@ -29,6 +29,7 @@ class Application_Form_Config extends Application_Form_Secure
 	protected $_canonicalScheme;
     protected $_recaptchaPublicKey;
     protected $_recaptchaPrivateKey;
+	protected $_activeLocalList;
 
 	/**
 	 * Wether or not to include protected pages into the menus
@@ -306,6 +307,19 @@ class Application_Form_Config extends Application_Form_Secure
 		return $this->_recaptchaPrivateKey;
 	}
 
+	public function setActiveLocalList($localList)
+    {
+		$this->_activeLocalList = $localList;
+        $this->getElement('activeLocalList')->setValue($this->_activeLocalList);
+
+        return $this;
+	}
+
+	public function getActiveLocalList()
+    {
+		return $this->_activeLocalList;
+	}
+
 	public function init()
     {
         parent::init();
@@ -479,6 +493,11 @@ class Application_Form_Config extends Application_Form_Secure
 				Zend_Controller_Request_Http::SCHEME_HTTP => 'http',
 				Zend_Controller_Request_Http::SCHEME_HTTPS => 'https'
 			)
+		));
+
+		$this->addElement('hidden', 'activeLocalList', array(
+			'value' => $this->_activeLocalList,
+			'label' => 'Website localization list',
 		));
 
         $this->setElementDecorators(array('ViewHelper', 'Label'));

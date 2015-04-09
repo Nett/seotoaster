@@ -93,17 +93,47 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
         ));
     }
 
-    public function findByUrl($pageUrl = Helpers_Action_Website::DEFAULT_PAGE) {
-        $where      = $this->getAdapter()->quoteInto('page.url = ?', $pageUrl);
-        $orWhere    = $this->getAdapter()->quoteInto('optimized.url = ?', $pageUrl);
-        $select     = $this->_getOptimizedSelect(false, array('id', 'parent_id', 'template_id', 'last_update', 'silo_id', 'protected', 'system', 'news'));
+    public function findByUrl($pageUrl = Helpers_Action_Website::DEFAULT_PAGE, $lang = null)
+    {
+        $select = $this->_getOptimizedSelect(
+                false,
+                array(
+                    'id',
+                    'parent_id',
+                    'template_id',
+                    'last_update',
+                    'silo_id',
+                    'protected',
+                    'system',
+                    'news',
+                    'default_lang_id',
+                    'lang'
+                )
+            )->join('template', 'page.template_id=template.name', null)
+            ->columns(array('content' => 'template.content'));
+        $where  = $this->getAdapter()->quoteInto('page.url = ?', $pageUrl);
+        $where .= ' OR '.$this->getAdapter()->quoteInto('optimized.url = ?', $pageUrl);
+        $select->where($where);
 
-        $select->join('template', 'page.template_id=template.name', null)
-            ->columns(array(
-                'content' => 'template.content'
-            ))
-            ->where($where)
-            ->orWhere($orWhere);
+        // Checked language
+        if (null !== $lang) {
+            /*$config = Zend_Controller_Action_HelperBroker::getStaticHelper('config');
+            $config->init();
+            $lang   = Zend_Locale::getLocaleToTerritory($config->getConfig('language'));*/
+            $select->where('page.lang = ?', $lang);
+        }
+
+
+        /*$lang  = (null === $lang) ? $systemLang : Zend_Locale::getLocaleToTerritory($lang);
+        $where = $this->getAdapter()->quoteInto('page.lang = ?', $lang);
+        if ($lang !== $systemLang) {
+            //$where .= ' OR '.$this->getAdapter()->quoteInto('page.lang = ?', $systemLang);
+        }
+        $select->where($where);
+        //$a = $select->assemble();
+
+        //$data = $this->getAdapter()->fetchAssoc($select);
+        //$row  = (isset($data[$lang])) ? $data[$lang] : $data[$systemLang];*/
 
         $row = $this->getAdapter()->fetchRow($select);
 
@@ -125,6 +155,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
         ->where('page_id = ?', $row['id'])
         ->orWhere('page_id IS NULL');
         $row['containers'] = $this->getAdapter()->fetchAssoc($select);
+
         return $row;
     }
 
@@ -160,7 +191,30 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
 
     private function _getOptimizedSelect($originalsOnly, $pageFields = array()) {
         if(empty($pageFields)) {
-            $pageFields = array('id', 'template_id', 'parent_id', 'last_update', 'is_404page', 'show_in_menu', 'order', 'weight', 'silo_id', 'protected', 'system', 'draft', 'publish_at', 'news', 'err_login_landing', 'mem_landing', 'signup_landing', 'preview_image', 'external_link_status', 'external_link');
+            $pageFields = array(
+                'id',
+                'template_id',
+                'parent_id',
+                'last_update',
+                'is_404page',
+                'show_in_menu',
+                'order',
+                'weight',
+                'silo_id',
+                'protected',
+                'system',
+                'draft',
+                'publish_at',
+                'news',
+                'err_login_landing',
+                'mem_landing',
+                'signup_landing',
+                'preview_image',
+                'external_link_status',
+                'external_link',
+                'default_lang_id',
+                'lang'
+            );
         }
         $select = $this->getAdapter()->select();
         if($originalsOnly) {

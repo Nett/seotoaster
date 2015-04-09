@@ -153,8 +153,10 @@ class Backend_ConfigController extends Zend_Controller_Action {
 			$configForm->getElement('suPassword')->setValue($suPassword);
 		}
 
-		$this->view->messages = $this->_helper->flashMessenger->getMessages();
-		$this->view->configForm = $configForm;
+		$this->view->langDefault = $this->_helper->config->getConfig('language');
+		$this->view->langList    = $this->_helper->language->getLanguages(false);
+		$this->view->messages    = $this->_helper->flashMessenger->getMessages();
+		$this->view->configForm  = $configForm;
 	}
 
     /**
