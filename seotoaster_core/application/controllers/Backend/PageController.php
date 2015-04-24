@@ -72,7 +72,7 @@ class Backend_PageController extends Zend_Controller_Action {
             $path                     = $this->_helper->website->getUrl().'backend/backend_page/page/';
 
             foreach ($activeLocalList as $code => $name) {
-                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code))) {
+                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code)) || $langCode === $page->getLang()) {
                     continue;
                 }
 

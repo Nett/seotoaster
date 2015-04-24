@@ -7,7 +7,7 @@
 		foreach ($this->localSection as $code => $val) : ?>
 			<a href="<?php echo $val['href']; ?>" title="<?php echo $val['name']; ?>">
 				<?php echo $val['action']; ?>
-				<img class="align-baseline" border="0" alt="Czech" src="/system/images/flags/<?php echo $code ; ?>.png">
+				<img class="align-baseline" border="0" src="/system/images/flags/<?php echo $code; ?>.png">
 			</a>
 		<?php endforeach;
 	endif; ?>
