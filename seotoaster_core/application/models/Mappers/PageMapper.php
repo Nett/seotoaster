@@ -42,6 +42,8 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
             'h1'                  => $page->getH1(),
             'header_title'        => $page->getHeaderTitle(),
             'url'                 => $page->getUrl(),
+            'default_lang_id'     => $page->getDefaultLangId(),
+            'lang'                => $page->getLang(),
             'nav_name'            => $page->getNavName(),
             'meta_description'    => $page->getMetaDescription(),
             'meta_keywords'       => $page->getMetaKeywords(),

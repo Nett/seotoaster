@@ -36,7 +36,8 @@ class Backend_PageController extends Zend_Controller_Action {
             ->initContext();
     }
 
-    public function pageAction() {
+    public function pageAction()
+    {
         $checkFaPull = false; //flag shows that system needs to check featured areas in session
         $pageForm    = new Application_Form_Page();
         $pageId      = $this->getRequest()->getParam('id');
@@ -46,12 +47,43 @@ class Backend_PageController extends Zend_Controller_Action {
 
         $this->view->secureToken = $secureToken;
 
-        if ($pageId) {
+        $defaultLangId = $this->getRequest()->getParam('defaultLangId');
+        if ($defaultLangId || $pageId) {
             // search page by id
-            $page = $mapper->find($pageId);
+            $page = $mapper->find($defaultLangId ? $defaultLangId : $pageId);
         } else {
             // load new page
             $page = new Application_Model_Models_Page(array('showInMenu' => Application_Model_Models_Page::IN_MAINMENU));
+        }
+
+        // Lang section
+        if ($defaultLangId && ($lang = $this->getRequest()->getParam('lang'))) {
+            $page->setOptimized(false);
+            $page->setUrl(implode('-'.$lang.'.', explode('.', $page->getUrl())));
+            $page->setLang(Zend_Locale::getLocaleToTerritory($lang));
+            $page->setId(null);
+        }
+
+        $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
+        if (sizeof($activeLocalList) >= 1) {
+            $this->view->localSection = array();
+            $defaultLangId            = $defaultLangId ? $defaultLangId : $page->getDefaultLangId();
+            $pages                    = $mapper->getCurrentPageLocalData($defaultLangId);
+            $path                     = $this->_helper->website->getUrl().'backend/backend_page/page/';
+
+            foreach ($activeLocalList as $code => $name) {
+                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code))) {
+                    continue;
+                }
+
+                $this->view->localSection[$code] = array(
+                    'name'   => $name,
+                    'action' => $this->_helper->language->translate((isset($pages[$langCode]['id']) ? 'edit' : 'add')),
+                    'href'   => $path.((isset($pages[$langCode]['id']))
+                        ? 'id/'.$pages[$langCode]['id']
+                        : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
+                );
+            }
         }
 
         if(!$this->getRequest()->isPost()) {
@@ -238,35 +270,8 @@ class Backend_PageController extends Zend_Controller_Action {
         //page preview image
         $this->view->pagePreviewImage = Tools_Page_Tools::getPreview($page);//Tools_Page_Tools::processPagePreviewImage($page->getUrl());
         $this->view->sambaOptimized   = $page->getOptimized();
-
         // page help section
-        $this->view->helpSection  = ($pageId) ? 'editpage' : 'addpage';
-
-        // Lang section
-        $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
-        if (sizeof($activeLocalList) >= 1) {
-            $a     = $this->_helper->website->getUrl().'backend/backend_page/page/';
-            $links = array();
-            $pages = $mapper->getCurrentPageLocalData($page->getDefaultLangId());
-            foreach ($activeLocalList as $key => $val) {
-                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($key))) {
-                    continue;
-                }
-
-                if (isset($pages[$langCode])) {
-                    $links[$key] = array('href' => $a.'id/'.$pages[$langCode]['id'], 'name' => $val);
-                }
-                else {
-                    $links[$key] = array('href' => $a, 'name' => $val);
-                }
-            }
-
-            $this->view->localSection = $links;
-        }
-
-
-
-
+        $this->view->helpSection      = (!isset($defaultLangId) && $pageId) ? 'editpage' : 'addpage';
 
         if($page->getOptimized()) {
             $pageForm->lockFields(array('h1', 'headerTitle', 'url', 'navName', 'metaDescription', 'metaKeywords', 'teaserText'));
