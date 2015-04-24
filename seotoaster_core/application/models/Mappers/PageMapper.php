@@ -229,16 +229,15 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
     /**
      * @param  string $pageUrl
-     * @param  string $lang
      * @return mixed
      */
-    public function findByUrl($pageUrl, $lang = null)
+    public function findByUrl($pageUrl)
     {
         if (!$pageUrl) {
             $pageUrl = Helpers_Action_Website::DEFAULT_PAGE;
         }
 
-        $entry = $this->getDbTable()->findByUrl($pageUrl, $lang);
+        $entry = $this->getDbTable()->findByUrl($pageUrl);
 
         if (!$entry) {
             return null;

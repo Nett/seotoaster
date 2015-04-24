@@ -93,7 +93,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
         ));
     }
 
-    public function findByUrl($pageUrl = Helpers_Action_Website::DEFAULT_PAGE, $lang = null)
+    public function findByUrl($pageUrl = Helpers_Action_Website::DEFAULT_PAGE)
     {
         $select = $this->_getOptimizedSelect(
                 false,
@@ -111,29 +111,10 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
                 )
             )->join('template', 'page.template_id=template.name', null)
             ->columns(array('content' => 'template.content'));
+
         $where  = $this->getAdapter()->quoteInto('page.url = ?', $pageUrl);
         $where .= ' OR '.$this->getAdapter()->quoteInto('optimized.url = ?', $pageUrl);
         $select->where($where);
-
-        // Checked language
-        if (null !== $lang) {
-            /*$config = Zend_Controller_Action_HelperBroker::getStaticHelper('config');
-            $config->init();
-            $lang   = Zend_Locale::getLocaleToTerritory($config->getConfig('language'));*/
-            $select->where('page.lang = ?', $lang);
-        }
-
-
-        /*$lang  = (null === $lang) ? $systemLang : Zend_Locale::getLocaleToTerritory($lang);
-        $where = $this->getAdapter()->quoteInto('page.lang = ?', $lang);
-        if ($lang !== $systemLang) {
-            //$where .= ' OR '.$this->getAdapter()->quoteInto('page.lang = ?', $systemLang);
-        }
-        $select->where($where);
-        //$a = $select->assemble();
-
-        //$data = $this->getAdapter()->fetchAssoc($select);
-        //$row  = (isset($data[$lang])) ? $data[$lang] : $data[$systemLang];*/
 
         $row = $this->getAdapter()->fetchRow($select);
 
