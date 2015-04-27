@@ -64,9 +64,15 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
         if ($page->getId()) {
             $this->getDbTable()->update($data, array('id = ?' => $page->getId()));
-        } else {
+        }
+        else {
             $pageId = $this->getDbTable()->insert($data);
             $page->setId($pageId);
+
+            if ((int)$page->getDefaultLangId() === 0) {
+                $page->setDefaultLangId($pageId);
+                return $this->save($page);
+            }
         }
 
         //save page options

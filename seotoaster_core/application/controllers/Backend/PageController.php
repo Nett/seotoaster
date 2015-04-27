@@ -36,6 +36,49 @@ class Backend_PageController extends Zend_Controller_Action {
             ->initContext();
     }
 
+    /**
+     * Add section selecting language
+     *
+     * @param integer $defaultLangId
+     * @param object  $pageModel
+     *
+     * @return bool status
+     */
+    public function addLocalSection($defaultLangId, $pageModel)
+    {
+        if (!$defaultLangId || !($pageModel instanceof Application_Model_Models_Page)) {
+            return false;
+        }
+
+        $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
+        if (sizeof($activeLocalList) >= 1) {
+            $pages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($defaultLangId);
+            $path  = $this->_helper->website->getUrl().'backend/backend_page/page/';
+
+            $this->view->localSection = array();
+            foreach ($activeLocalList as $code => $name) {
+                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code))) {
+                    continue;
+                }
+
+                $this->view->localSection[$code] = array(
+                    'name'   => $name,
+                    'active' => ($langCode === $pageModel->getLang()),
+                    'action' => $this->_helper->language->translate((isset($pages[$langCode]['id']) ? 'edit' : 'add')),
+                    'href'   => $path.((isset($pages[$langCode]['id']))
+                            ? 'id/'.$pages[$langCode]['id']
+                            : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
+                );
+            }
+
+            if (!empty($this->view->localSection)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function pageAction()
     {
         $checkFaPull = false; //flag shows that system needs to check featured areas in session
@@ -47,7 +90,7 @@ class Backend_PageController extends Zend_Controller_Action {
 
         $this->view->secureToken = $secureToken;
 
-        $defaultLangId = $this->getRequest()->getParam('defaultLangId');
+        $defaultLangId = filter_var($this->getRequest()->getParam('defaultLangId'), FILTER_SANITIZE_NUMBER_INT);
         if ($defaultLangId || $pageId) {
             // search page by id
             $page = $mapper->find($defaultLangId ? $defaultLangId : $pageId);
@@ -57,34 +100,17 @@ class Backend_PageController extends Zend_Controller_Action {
         }
 
         // Lang section
-        if ($defaultLangId && ($lang = $this->getRequest()->getParam('lang'))) {
+        $defaultLangId = !empty($defaultLangId) ? $defaultLangId : $page->getDefaultLangId();
+        if ($defaultLangId && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))) {
             $page->setOptimized(false);
             $page->setUrl(implode('-'.$lang.'.', explode('.', $page->getUrl())));
             $page->setLang(Zend_Locale::getLocaleToTerritory($lang));
             $page->setId(null);
         }
-
-        $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
-        if (sizeof($activeLocalList) >= 1) {
-            $this->view->localSection = array();
-            $defaultLangId            = $defaultLangId ? $defaultLangId : $page->getDefaultLangId();
-            $pages                    = $mapper->getCurrentPageLocalData($defaultLangId);
-            $path                     = $this->_helper->website->getUrl().'backend/backend_page/page/';
-
-            foreach ($activeLocalList as $code => $name) {
-                if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code)) || $langCode === $page->getLang()) {
-                    continue;
-                }
-
-                $this->view->localSection[$code] = array(
-                    'name'   => $name,
-                    'action' => $this->_helper->language->translate((isset($pages[$langCode]['id']) ? 'edit' : 'add')),
-                    'href'   => $path.((isset($pages[$langCode]['id']))
-                        ? 'id/'.$pages[$langCode]['id']
-                        : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
-                );
-            }
+        else {
+            $page->setLang(Zend_Locale::getLocaleToTerritory(Tools_Localisation_Tools::getLangDefault()));
         }
+        $this->addLocalSection($defaultLangId, $page);
 
         if(!$this->getRequest()->isPost()) {
             $pageForm->getElement('pageCategory')->addMultiOptions($this->_getMenuOptions($page));
