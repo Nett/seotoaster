@@ -24,9 +24,16 @@ class Widgets_Language_Language extends Widgets_Abstract
             return '';
         }
 
-        $this->_view->activeLang = Tools_Localisation_Tools::getLangDefault();
-        if (null !== ($userLang = $this->_request->getCookie('userLanguage', null))) {
-            $this->_view->activeLang = $userLang;
+        if (isset($this->_view->urls[$this->_toasterOptions['lang']]['url'])
+            && $this->_view->urls[$this->_toasterOptions['lang']]['url'] === $this->_toasterOptions['url']
+        ) {
+            $this->_view->activeLang = $this->_toasterOptions['lang'];
+        }
+        elseif (null !== ($userLang = $this->_request->getCookie('userLanguage'))) {
+            $this->_view->activeLang = Zend_Locale::getLocaleToTerritory($userLang);
+        }
+        else {
+            $this->_view->activeLang = Zend_Locale::getLocaleToTerritory(Tools_Localisation_Tools::getLangDefault());
         }
 
         return $this->_view->render('select.lang.phtml');

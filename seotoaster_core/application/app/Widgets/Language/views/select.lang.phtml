@@ -3,7 +3,7 @@
     <?php if (null !== ($langCode = Zend_Locale::getLocaleToTerritory($key)) && isset($this->urls[$langCode]['url'])): ?>
     <option value="<?php echo $this->urls[$langCode]['url']; ?>"
             data-lang="<?php echo $key; ?>"
-            <?php echo ($this->activeLang === $key) ? ' selected="selected"' : '' ?>>
+            <?php echo ($this->activeLang === $langCode) ? ' selected="selected"' : '' ?>>
         <?php echo $val; ?>
     </option>
     <?php endif; ?>
@@ -11,11 +11,10 @@
 </select>
 <script>
     $(function() {
-        var website = $('#website_url').val();
         $('select.w_language-select').on('change', function() {
             var $this = $(this);
             document.cookie = 'userLanguage='+$(':selected', $this).data('lang');
-            window.location = website+$this.val();
+            window.location = ($('#website_url').val())+$this.val();
         });
     });
 </script>
