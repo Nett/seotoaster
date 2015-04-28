@@ -105,3 +105,7 @@ SELECT value FROM `config` WHERE name = 'version';
 -- version: 2.4.5
 ALTER TABLE `page` ADD `default_lang_id` int(11) NOT NULL DEFAULT '0' AFTER `id`;
 ALTER TABLE `page` ADD `lang` char(5) COLLATE 'utf8_unicode_ci' NULL AFTER `default_lang_id`;
+UPDATE page SET default_lang_id=id WHERE default_lang_id='0';
+
+UPDATE `config` SET `value`='2.4.5' WHERE `name`='version';
+SELECT value FROM `config` WHERE name = 'version';

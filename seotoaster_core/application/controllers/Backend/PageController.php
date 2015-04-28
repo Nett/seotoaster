@@ -53,9 +53,10 @@ class Backend_PageController extends Zend_Controller_Action {
         }
 
         $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
-        if (sizeof($activeLocalList) >= 1) {
-            $pages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($defaultLangId);
-            $path  = $this->_helper->website->getUrl().'backend/backend_page/page/';
+        if (sizeof($activeLocalList) > 1) {
+            $pages       = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($defaultLangId);
+            $path        = $this->_helper->website->getUrl().'backend/backend_page/page/';
+            $langDefault = Tools_Localisation_Tools::getLangDefault();
             foreach ($activeLocalList as $code => $name) {
                 if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code))) {
                     continue;
@@ -64,7 +65,9 @@ class Backend_PageController extends Zend_Controller_Action {
                 $this->view->localSection[$code] = array(
                     'name'   => $name,
                     'active' => ($langCode === $pageModel->getLang()),
-                    'action' => $this->_helper->language->translate((isset($pages[$langCode]['id']) ? 'edit' : 'add')),
+                    'action' => $this->_helper->language->translate(
+                        ($langDefault === $code) ? 'default edit' : (isset($pages[$langCode]['id']) ? 'edit' : 'add')
+                    ),
                     'href'   => $path.((isset($pages[$langCode]['id']))
                             ? 'id/'.$pages[$langCode]['id']
                             : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
