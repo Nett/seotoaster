@@ -100,3 +100,8 @@ ALTER TABLE `page` ADD COLUMN `external_link` TEXT COLLATE utf8_unicode_ci DEFAU
 UPDATE `config` SET `value`='2.4.0' WHERE `name`='version';
 SELECT value FROM `config` WHERE name = 'version';
 
+-- 28.04.2015
+-- Add languages
+-- version: 2.4.5
+ALTER TABLE `page` ADD `default_lang_id` int(11) NOT NULL DEFAULT '0' AFTER `id`;
+ALTER TABLE `page` ADD `lang` char(5) COLLATE 'utf8_unicode_ci' NULL AFTER `default_lang_id`;
