@@ -36,17 +36,19 @@ class Backend_PageController extends Zend_Controller_Action {
             ->initContext();
     }
 
+
     /**
      * Add section selecting language
      *
-     * @param integer $defaultLangId
-     * @param object  $pageModel
+     * @param string $defaultLangId
+     * @param Application_Model_Models_Page $pageModel
      *
-     * @return bool status
+     * @return bool
      */
-    public function addLocalSection($defaultLangId, $pageModel)
+    public function addLocalSection($defaultLangId, Application_Model_Models_Page $pageModel)
     {
-        if (!$defaultLangId || !($pageModel instanceof Application_Model_Models_Page)) {
+        $this->view->localSection = array();
+        if (!is_numeric($defaultLangId) || (int)$defaultLangId === 0) {
             return false;
         }
 
@@ -54,8 +56,6 @@ class Backend_PageController extends Zend_Controller_Action {
         if (sizeof($activeLocalList) >= 1) {
             $pages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($defaultLangId);
             $path  = $this->_helper->website->getUrl().'backend/backend_page/page/';
-
-            $this->view->localSection = array();
             foreach ($activeLocalList as $code => $name) {
                 if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code))) {
                     continue;
@@ -70,13 +70,9 @@ class Backend_PageController extends Zend_Controller_Action {
                             : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
                 );
             }
-
-            if (!empty($this->view->localSection)) {
-                return true;
-            }
         }
 
-        return false;
+        return !empty($this->view->localSection) ? true : false;
     }
 
     public function pageAction()
@@ -86,14 +82,15 @@ class Backend_PageController extends Zend_Controller_Action {
         $pageId      = $this->getRequest()->getParam('id');
         $mapper      = Application_Model_Mappers_PageMapper::getInstance();
 
-        $secureToken = Tools_System_Tools::initZendFormCsrfToken($pageForm, Tools_System_Tools::ACTION_PREFIX_PAGES);
-
-        $this->view->secureToken = $secureToken;
+        $this->view->secureToken = Tools_System_Tools::initZendFormCsrfToken(
+            $pageForm,
+            Tools_System_Tools::ACTION_PREFIX_PAGES
+        );
 
         $defaultLangId = filter_var($this->getRequest()->getParam('defaultLangId'), FILTER_SANITIZE_NUMBER_INT);
         if ($defaultLangId || $pageId) {
             // search page by id
-            $page = $mapper->find($defaultLangId ? $defaultLangId : $pageId);
+            $page = $mapper->find(!empty($defaultLangId) ? $defaultLangId : $pageId);
         } else {
             // load new page
             $page = new Application_Model_Models_Page(array('showInMenu' => Application_Model_Models_Page::IN_MAINMENU));

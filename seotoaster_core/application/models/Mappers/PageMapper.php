@@ -323,9 +323,15 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
     public function delete(Application_Model_Models_Page $page)
     {
-        $where = $this->getDbTable()->getAdapter()->quoteInto('id = ?', $page->getId());
+        $where  = $this->getDbTable()->getAdapter()->quoteInto('id = ?', $page->getId());
+        if ($page->getId() === $page->getDefaultLangId()) {
+            $where .= ' OR '.$this->getDbTable()->getAdapter()
+                    ->quoteInto('default_lang_id = ?', $page->getDefaultLangId());
+        }
+
         $deleteResult = $this->getDbTable()->delete($where);
         $page->notifyObservers();
+
         return $deleteResult;
     }
 
