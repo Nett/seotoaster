@@ -22,13 +22,17 @@ class Application_Model_Mappers_ContainerMapper extends Application_Model_Mapper
 			'container_type'  => $container->getContainerType(),
 			'page_id'         => $container->getPageId(),
 			'published'       => $container->getPublished(),
-			'publishing_date' => $container->getPublishingDate()
+			'publishing_date' => $container->getPublishingDate(),
+            'lang'            => $container->getLang()
 		);
 		if(!$container->getId()) {
 			return $this->getDbTable()->insert($data);
 		}
 		else {
-			return $this->getDbTable()->update($data, array('id = ?' => $container->getId()));
+			return $this->getDbTable()->update(
+                $data,
+                array('id = ?' => $container->getId(), 'lang = ?' => $container->getLang())
+            );
 		}
 	}
 

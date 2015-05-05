@@ -131,7 +131,9 @@ class Backend_ContentController extends Zend_Controller_Action {
 				->setName($containerData['containerName'])
 				->setContainerType($containerData['containerType'])
 				->setPageId($pageId)
-				->setContent($containerData['content']);
+				->setContent($containerData['content'])
+			    ->setLang($containerData['lang']);
+
 			$published = ($container->getContainerType() == Application_Model_Models_Container::TYPE_REGULARCONTENT || $container->getContainerType() == Application_Model_Models_Container::TYPE_STATICCONTENT) ? $this->getRequest()->getParam('published') : true;
 			$container->setPublished($published);
 			if(!$published) {

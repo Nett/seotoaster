@@ -31,7 +31,7 @@ class Application_Model_Models_Container extends Application_Model_Models_Abstra
 
 	protected $_published     = true;
 
-	protected $_publishingDate       = '';
+	protected $_publishingDate = '';
 
 	protected $_content       = '';
 
@@ -92,5 +92,15 @@ class Application_Model_Models_Container extends Application_Model_Models_Abstra
 		$this->_content = $content;
 		return $this;
 	}
-}
 
+	public function getLang()
+	{
+		return $this->_lang;
+	}
+
+	public function setLang($lang)
+	{
+		$this->_lang = $lang;
+		return $this;
+	}
+}

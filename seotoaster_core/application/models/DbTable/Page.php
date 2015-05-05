@@ -124,7 +124,8 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
 
         // select containers for the current page (including static)
         $select = $this->getAdapter()->select()->from('container', array(
-            'uniqHash' => new Zend_Db_Expr("MD5(CONCAT_WS('-',`name`, COALESCE(`page_id`, 0), `container_type`))"),
+            'uniqHash'
+                => new Zend_Db_Expr("MD5(CONCAT_WS('-',`name`, COALESCE(`page_id`, 0), `container_type`, `lang`))"),
             'id',
             'name',
             'page_id',
@@ -133,8 +134,9 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
             'published',
             'publishing_date'
         ))
-        ->where('page_id = ?', $row['id'])
-        ->orWhere('page_id IS NULL');
+        ->where("page_id = '".$row['id']."' AND lang = '".$row['lang']."'")
+        ->orWhere("page_id IS NULL AND lang = '".$row['lang']."'");
+
         $row['containers'] = $this->getAdapter()->fetchAssoc($select);
 
         return $row;
