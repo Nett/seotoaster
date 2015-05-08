@@ -52,7 +52,7 @@ class Application_Model_Models_Page extends Application_Model_Models_Abstract im
 
 	protected $_defaultLangId     = 0;
 
-	protected $_lang              = '';
+	protected $_lang              = null;
 
     protected $_h1                = '';
 

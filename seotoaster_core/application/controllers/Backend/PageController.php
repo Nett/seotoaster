@@ -45,7 +45,7 @@ class Backend_PageController extends Zend_Controller_Action {
      *
      * @return bool
      */
-    public function addLocalSection($defaultLangId, Application_Model_Models_Page $pageModel)
+    private function _addLocalSection($defaultLangId, Application_Model_Models_Page $pageModel)
     {
         $this->view->localSection = array();
         if (!is_numeric($defaultLangId) || (int)$defaultLangId === 0) {
@@ -100,17 +100,27 @@ class Backend_PageController extends Zend_Controller_Action {
         }
 
         // Lang section
-        $defaultLangId = !empty($defaultLangId) ? $defaultLangId : $page->getDefaultLangId();
-        if ($defaultLangId && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))) {
+        $this->view->hideSettingsPage = true;
+        if (($defaultLangId = !empty($defaultLangId) ? $defaultLangId : $page->getDefaultLangId())
+            && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))
+        ) {
             $page->setOptimized(false);
             $page->setUrl(implode('-'.$lang.'.', explode('.', $page->getUrl())));
             $page->setLang(Zend_Locale::getLocaleToTerritory($lang));
             $page->setId(null);
+            $page->setShowInMenu(Application_Model_Models_Page::IN_NOMENU);
         }
         else {
-            $page->setLang(Zend_Locale::getLocaleToTerritory(Tools_Localisation_Tools::getLangDefault()));
+            $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localisation_Tools::getLangDefault());
+            if (null === $page->getLang()) {
+                $page->setLang($langDefault);
+            }
+
+            if ($langDefault === $page->getLang()) {
+                $this->view->hideSettingsPage = false;
+            }
         }
-        $this->addLocalSection($defaultLangId, $page);
+        $this->_addLocalSection($defaultLangId, $page);
 
         if(!$this->getRequest()->isPost()) {
             $pageForm->getElement('pageCategory')->addMultiOptions($this->_getMenuOptions($page));
