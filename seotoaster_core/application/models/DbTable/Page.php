@@ -138,7 +138,6 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
         ->orWhere("page_id IS NULL AND lang = '".$row['lang']."'");
 
         $row['containers'] = $this->getAdapter()->fetchAssoc($select);
-
         return $row;
     }
 
