@@ -29,7 +29,7 @@ INSERT INTO `config` (`name`, `value`) VALUES
 ('recaptchaPublicKey',	'6LcaJdASAAAAADyAWIdBYytJMmYPEykb3Otz4pp6'),
 ('recaptchaPrivateKey',	'6LcaJdASAAAAAH-e1dWpk96PACf3BQG1OGGvh5hK'),
 ('enableMobileTemplates',	'1'),
-('version',	'2.4.0');
+('version',	'2.4.1');
 
 DROP TABLE IF EXISTS `container`;
 CREATE TABLE `container` (
@@ -383,7 +383,7 @@ INSERT INTO `template_type` (`id`, `title`) VALUES
 ('typemenu',	'Menu'),
 ('typemobile',	'Mobile page'),
 ('typeregular',	'Regular'),
-('type_partial_template',	'Partial template');
+('type_partial_template',	'Nested Templates');
 
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
