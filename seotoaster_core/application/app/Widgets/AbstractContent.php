@@ -4,17 +4,19 @@ abstract class Widgets_AbstractContent extends Widgets_Abstract
     const OPTION_READONLY = 'readonly';
     const OPTION_HREF     = 'href';
 
-    protected $_acl       = null;
+    protected $_acl           = null;
 
-    protected $_type      = null;
+    protected $_type          = null;
 
-    protected $_pageId    = null;
+    protected $_pageId        = null;
 
-    protected $_name      = null;
+    protected $_name          = null;
 
-    protected $_lang      = null;
+    protected $_lang          = null;
 
-    protected $_container = null;
+    protected $_defaultLangId = null;
+
+    protected $_container     = null;
 
     protected function _init()
     {
@@ -58,11 +60,17 @@ abstract class Widgets_AbstractContent extends Widgets_Abstract
             $hint = 'edit '.($widgetName == 'content' ? '' : $widgetName).' content';
         }
 
+        $containerId = ($this->_container !== null) ? $this->_container->getId() : null;
+        $lang = isset($_COOKIE["localization"]) ? '/lang/' . $_COOKIE["localization"] : '';
         $url  = $this->_toasterOptions['websiteUrl'].'backend/backend_content/';
-        $url .= (null === $this->_container)
-            ? 'add/containerName/'.$this->_name.'/pageId/'.$this->_toasterOptions['id']
-            : 'edit/id/'.$this->_container->getId();
-        $url .= '/containerType/'.$this->_type.'/lang/'.$this->_toasterOptions['lang'];
+        if(null === $this->_container){
+            $url .= 'add/containerName/'.$this->_name.'/pageId/'.$this->_toasterOptions['defaultLangId'];
+        }else if($this->_container->getId() === null){
+            $url .= 'edit/defaultLangId/'.$this->_container->getDefaultLangId().'/pageId/'.$this->_toasterOptions['id'] . $lang;
+        }else{
+            $url .= 'edit/id/'.$this->_container->getId() . $lang;
+        }
+        $url .= '/containerType/'.$this->_type;
 
         return '<a class="tpopup generator-links" data-pwidth="'.$width.'" data-pheight="'.$height.'" title="Click to '
             .$hint.'" href="javascript:;" data-url="'.$url.'"><img width="26" height="26" src="'
@@ -78,17 +86,26 @@ abstract class Widgets_AbstractContent extends Widgets_Abstract
         $containerKey = md5(
             implode('-', array($this->_name, $this->_pageId === null ? 0 : $this->_pageId, $this->_type, $this->_lang))
         );
-        if (!array_key_exists($containerKey, $this->_toasterOptions['containers'])) {
+        if (!array_key_exists($containerKey, $this->_toasterOptions['containers'])
+            && !array_key_exists($this->_name.'-'.$this->_type, $this->_toasterOptions['containersMain'])) {
             return null;
         }
 
-        $container = $this->_toasterOptions['containers'][$containerKey];
-        if ((($container['page_id'] == $this->_pageId) || ($container['page_id'] === null))
-            && $container['container_type'] == $this->_type
-        ) {
+        if (!array_key_exists($containerKey, $this->_toasterOptions['containers'])) {
+            $container = $this->_toasterOptions['containersMain'][$this->_name.'-'.$this->_type];
+            $container['id'] = null;
+            $container['page_id'] = $this->_pageId;
             $widget = new Application_Model_Models_Container();
-
             return $widget->setName($this->_name)->setOptions($container);
+        } else {
+            $container = $this->_toasterOptions['containers'][$containerKey];
+            if ((($container['page_id'] == $this->_pageId) || ($container['page_id'] === $this->_toasterOptions['defaultLangId']) || ($container['page_id'] === null))
+                && $container['container_type'] == $this->_type
+            ) {
+                $widget = new Application_Model_Models_Container();
+
+                return $widget->setName($this->_name)->setOptions($container);
+            }
         }
 
         return null;

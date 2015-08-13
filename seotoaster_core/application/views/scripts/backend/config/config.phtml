@@ -1,8 +1,18 @@
 <script type="text/javascript">
     $(function() {
-        $('#tabs').tabs().submit(function(){
-            showSpinner($(this));
-        });
+        $('#tabs').tabs()
+            .on('click', function(){
+                var langs = $('#activeLanguagesList').val();
+                langs = langs.split(',');
+                var langsIndex = langs.indexOf($('#language').val());
+                if(langsIndex !== -1) {
+                    langs.splice(langsIndex);
+                    $('#activeLanguagesList').val(langs);
+                }
+            })
+            .on('submit', function(){
+                showSpinner($(this));
+            });
         $('input[title], .tooltip').tooltip({
             track: true
         });
@@ -10,7 +20,7 @@
         // Join localizations for save
         var localFilds = $('#localizationForm-config');
         localFilds.on('change', 'input.lang-select', function() {
-            $('#activeLocalList', localFilds).val(
+            $('#activeLanguagesList', localFilds).val(
                 $(':checked', localFilds).map(function() {
                     return this.getAttribute('data-lang');
                 }).get().join(',')
@@ -163,8 +173,8 @@
                 <h3><?php echo $this->translate('Select website localization'); ?>:</h3>
                 <div class="column_3 full-width">
                     <?php
-                    $activeLocalList = $this->configForm->getElement('activeLocalList')->getValue();
-                    $activeLocalList = !empty($activeLocalList) ? explode(',', $activeLocalList) : array();
+                    $activeLanguagesList = $this->configForm->getElement('activeLanguagesList')->getValue();
+                    $activeLanguagesList = !empty($activeLanguagesList) ? explode(',', $activeLanguagesList) : array();
                     foreach ($this->langList as $key => $lang):
                     if ($this->langDefault !== $key):
                     ?>
@@ -174,7 +184,7 @@
                                type="checkbox"
                                data-lang="<?php echo $key; ?>"
                                name="localization-<?php echo $key; ?>"
-                               <?php echo (in_array($key, $activeLocalList, true)) ? 'checked="checked"' : ''; ?>>
+                               <?php echo (in_array($key, $activeLanguagesList, true)) ? 'checked="checked"' : ''; ?>>
                                <img class="align-baseline"
                                     border="0"
                                     alt="<?php echo $lang; ?>"
@@ -183,7 +193,7 @@
                     <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
-                <?php echo $this->configForm->getElement('activeLocalList')->renderViewHelper(); ?>
+                <?php echo $this->configForm->getElement('activeLanguagesList')->renderViewHelper(); ?>
             </fieldset>
         <?php endif; ?>
         <?php echo $this->configForm->getElement('submit')->renderViewHelper(); ?>

@@ -25,6 +25,8 @@ class Application_Model_Models_Container extends Application_Model_Models_Abstra
 
 	protected $_lang          = '';
 
+    protected $_defaultLangId = 0;
+
 	protected $_pageId        = 0;
 
 	protected $_name          = '';
@@ -92,6 +94,17 @@ class Application_Model_Models_Container extends Application_Model_Models_Abstra
 		$this->_content = $content;
 		return $this;
 	}
+
+    public function getDefaultLangId()
+    {
+        return $this->_defaultLangId;
+    }
+
+    public function setDefaultLangId($defaultLangId)
+    {
+        $this->_defaultLangId = $defaultLangId;
+        return $this;
+    }
 
 	public function getLang()
 	{

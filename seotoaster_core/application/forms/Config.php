@@ -29,7 +29,7 @@ class Application_Form_Config extends Application_Form_Secure
 	protected $_canonicalScheme;
     protected $_recaptchaPublicKey;
     protected $_recaptchaPrivateKey;
-	protected $_activeLocalList;
+	protected $_activeLanguagesList;
 
 	/**
 	 * Wether or not to include protected pages into the menus
@@ -307,17 +307,17 @@ class Application_Form_Config extends Application_Form_Secure
 		return $this->_recaptchaPrivateKey;
 	}
 
-	public function setActiveLocalList($localList)
+	public function setactiveLanguagesList($localList)
     {
-		$this->_activeLocalList = $localList;
-        $this->getElement('activeLocalList')->setValue($this->_activeLocalList);
+		$this->_activeLanguagesList = $localList;
+        $this->getElement('activeLanguagesList')->setValue($this->_activeLanguagesList);
 
         return $this;
 	}
 
-	public function getActiveLocalList()
+	public function getActiveLanguagesList()
     {
-		return $this->_activeLocalList;
+		return $this->_activeLanguagesList;
 	}
 
 	public function init()
@@ -495,8 +495,8 @@ class Application_Form_Config extends Application_Form_Secure
 			)
 		));
 
-		$this->addElement('hidden', 'activeLocalList', array(
-			'value' => $this->_activeLocalList,
+		$this->addElement('hidden', 'activeLanguagesList', array(
+			'value' => $this->_activeLanguagesList,
 			'label' => 'Website localization list',
 		));
 

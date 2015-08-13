@@ -5,13 +5,16 @@
             'publishAt'        => $this->publishingDate,
             'onselectCallback' => null
         ));
-    
-        echo $this->partial('admin' . DIRECTORY_SEPARATOR . '_header.phtml', array(
-            'innerHeaderHtml' => $draftOrLive,
-            'pluginsSpace'    => $this->pluginsEditorTop,
-            'helpSection'     => $this->helpSection
 
-        ));
+        echo $this->partial(
+            'admin' . DIRECTORY_SEPARATOR . '_header.phtml',
+            array(
+                'innerHeaderHtml' => $draftOrLive,
+                'pluginsSpace'    => $this->pluginsEditorTop,
+                'helpSection'     => $this->helpSection,
+                'langSection'     => $this->langSection
+            )
+        );
     ?>
     <div class="content-footer">
         <div class="grid_8 above-editor-links">
@@ -21,6 +24,7 @@
                 <?php echo $this->contentForm->getElement('containerName'); ?>
                 <?php echo $this->contentForm->getElement('pageId'); ?>
                 <?php echo $this->contentForm->getElement('containerId'); ?>
+                <?php echo $this->contentForm->getElement('defaultLangId'); ?>
                 <input type="hidden" name="secureToken" class="secureToken" value="<?php echo $this->secureToken;?>" />
             </form>
         </div>
@@ -41,8 +45,63 @@
 
     <div class="footer grid_12">
         <?php echo $this->contentForm->getElement('submit'); ?>
+        <?php if ($this->localizationActive): ?>
+            <input id="currentReload" class="hidden" type="checkbox" name="currentReload"/>
+            <button id="apply-changes" class="btn outline-bg ticon-checkmark2 mr-grid" type="submit">Apply changes</button>
+        <?php endif; ?>
     </div>
 </div>
+
+<script type="text/javascript">
+	$(function() {
+        var $form = $('#frm_content');
+        var startData = $form.serialize();
+        $(document).on('click', '#apply-changes', function(){
+            $('#currentReload').prop('checked', true);
+            $form.submit();
+        }).on('click', '.language-link', function(e){
+            var href = $(this).attr('href');
+            if(startData !== $form.serialize()){
+                e.preventDefault();
+                <?php
+                    $lang = $this->currentLang ? $this->currentLang : Tools_Localization_Tools::getLangDefault();
+                    $lang = $this->localizationActive[$lang];
+                 ?>
+                showConfirm('<?php echo $this->translate('Save changes to the ' . $lang . ' language?');?>', function(){
+                    var elements = {
+                        content       : $('#content').val(),
+                        containerType : $('#container_type').val(),
+                        containerName : $('#container_name').val(),
+                        pageId        : $('#page_id').val(),
+                        containerId   : $('#container_id').val(),
+                        defaultLangId : $('#defaultLangId').val(),
+                        currentReload : $('#currentReload').prop('checked') ? 1 : 0,
+                        published     : $('#published').prop('checked') ? 1 : 0,
+                        publishOn     : $('#datepicker').val(),
+                        secureToken   : $form.find('.secureToken').val()
+                    };
+                    $.ajax({
+                        url        : $form.attr('action'),
+                        type       : 'post',
+                        dataType   : 'json',
+                        data       : elements,
+                        beforeSend : showSpinner(),
+                        success : function(response) {
+                            localStorage.removeItem(generateStorageKey());
+                            location.href = href;
+                        },
+                        error: function(response) {
+                            showMessage(response.responseText, true);
+                        }
+                    });
+                }, function(){
+                    location.href = href;
+                });
+            }
+        });
+    });
+</script>
+
 <?php
     $this->headScript()
         ->appendFile($this->websiteUrl . 'system/js/external/tinymce/tinymce.min.js')

@@ -1,3 +1,4 @@
+<?php $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] . '/' : ''; ?>
 <?php if(!$this->faPages || empty ($this->faPages)):?>
     <?php if(Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)): ?>
         <span><?php echo $this->translate('There are no pages for this tag'); ?></span>
@@ -43,7 +44,7 @@
                     <?php $pageUrl = $this->escape($page->getExternalLink());?>
                     <?php $targetBlank = 'target="_blank"';?>
                 <?php else:?>
-                    <?php $pageUrl = $this->escape($this->websiteUrl.$url);?>
+                    <?php $pageUrl = $this->escape($this->websiteUrl . $lang . $url);?>
                     <?php $targetBlank = '';?>
                 <?php endif;?>
 

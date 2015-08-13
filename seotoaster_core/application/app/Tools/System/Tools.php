@@ -59,16 +59,6 @@ class Tools_System_Tools {
 
     const ACTION_PREFIX_PLUGINS = 'Plugins';
 
-    const HTML_INPUT_TYPE_TEXT = 'text';
-
-    const HTML_INPUT_TYPE_TEXTAREA = 'textarea';
-
-    const HTML_INPUT_TYPE_RADIO = 'radio';
-
-    const HTML_INPUT_TYPE_CHECKBOX = 'checkbox';
-
-    const HTML_INPUT_TYPE_SELECT = 'select';
-
 	public static function getUrlPath($url) {
 		$parsedUrl = self::_proccessUrl($url);
 		return (isset($parsedUrl['path'])) ? trim($parsedUrl['path'], '/')  . (isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '') : '';

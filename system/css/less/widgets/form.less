@@ -422,6 +422,25 @@ textarea{
     }
     .activate-form-labeled-social();
 }
+
+.label-prefix{
+    position : relative;
+
+    input{
+        padding-left : @padding-base-vertical + 20;
+    }
+
+    .prefix{
+        margin      : 0;
+        position    : absolute;
+        bottom      : 0;
+        left        : @padding-base-vertical;
+        height      : @button-height-base;
+        line-height : @button-height-base;
+        text-align  : right;
+        width       : 20px;
+    }
+}
 // -- Social field style
 //.social-field(@width : 250px);
 

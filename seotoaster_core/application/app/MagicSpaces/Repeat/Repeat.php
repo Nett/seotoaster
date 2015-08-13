@@ -18,10 +18,6 @@ class MagicSpaces_Repeat_Repeat extends Tools_MagicSpaces_Abstract
 
     protected $_invert         = false;
 
-    protected $_parseBefore    = true;
-
-    protected $_recursiveParse = false;
-
     protected function _init()
     {
         $this->_qty        = 0;
@@ -59,7 +55,7 @@ class MagicSpaces_Repeat_Repeat extends Tools_MagicSpaces_Abstract
         if (!empty($this->_nameRepeat{0})) {
             $data = Application_Model_Mappers_ContainerMapper::getInstance()->findByName(
                 self::PREFIX_CONTAINER.$this->_nameRepeat,
-                $this->_toasterData['id'],
+                $this->_toasterData['defaultLangId'] ? $this->_toasterData['defaultLangId'] : $this->_toasterData['id'],
                 $this->_contentType
             );
 

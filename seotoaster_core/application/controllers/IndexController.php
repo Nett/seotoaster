@@ -34,13 +34,30 @@ class IndexController extends Zend_Controller_Action {
 		// Loading page data using url from request. First checking cache, if no cache
 		// loading from the database and save result to the cache
 		$pageCacheKey = md5($pageUrl);
+
+        $pageUrlLang = explode('/', $pageUrl);
+        $configHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('config');
+        $localization = explode(',', $configHelper->getConfig('activeLanguagesList'));
+        $pageLang = Tools_Localization_Tools::getLangDefault();
+        setcookie("localization", null);
+
+        if($pageUrlLang[0] === 'en'){
+            $pageUrlLang[0] = 'us';
+        }
+
+        if (!empty($localization[0]) && in_array($pageUrlLang[0], $localization, true) || $pageLang === $pageUrlLang[0]) {
+            setcookie("localization", $pageUrlLang[0]);
+            $pageLang = $pageUrlLang[0];
+            unset($pageUrlLang[0]);
+            $pageUrl = implode('/', $pageUrlLang);
+        }
         if(Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_CACHE_PAGE)) {
             $page = $this->_helper->cache->load($pageCacheKey, 'pagedata_');
         }
 
         // page is not in cache
         if($page === null) {
-            $page = Application_Model_Mappers_PageMapper::getInstance()->findByUrl($pageUrl);
+            $page = Application_Model_Mappers_PageMapper::getInstance()->findByUrl($pageUrl, $pageLang);
         }
 
         // page found
@@ -196,8 +213,8 @@ class IndexController extends Zend_Controller_Action {
 		}
 		$this->view->bodyTag  = $body[1];
 		$this->view->content  = $body[2];
-        $locale               = Zend_Locale::getLocaleToTerritory($this->_config->getConfig('language'));
-        $this->view->htmlLang = substr($locale, 0, strpos($locale, '_'));
+        $locale               = new Zend_Locale(Zend_Locale::getLocaleToTerritory(isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : $this->_config->getConfig('language')));
+        $this->view->htmlLang = $locale->getLanguage();
         $this->view->minify   = $this->_config->getConfig('enableMinify') && !Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_LAYOUT);
 	}
 

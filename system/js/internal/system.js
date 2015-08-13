@@ -108,20 +108,31 @@ $(function(){
             beforeSend : showSpinner(),
             success    : function(response){
                 if(!response.error){
+                    var redirectTo = response.responseText.redirectTo;
                     if(form.hasClass('_reload')){
-                        if(typeof response.responseText.redirectTo!='undefined'){
-                            top.location.href = $('#website_url').val()+response.responseText.redirectTo;
+                        if(typeof redirectTo !== 'undefined' && redirectTo){
+                            top.location.href = $('#website_url').val() + redirectTo;
                             return;
                         }
                         top.location.reload();
                         return;
                     }
+                    if(form.hasClass('_reload-screen')){
+                        if(typeof redirectTo !== 'undefined' && redirectTo){
+                            location.href = redirectTo;
+                            return;
+                        }
+                        location.reload();
+                        return;
+                    }
                     //processing callback
-                    if(typeof callback!='undefined' && callback!=null){
+                    if(typeof callback !== 'undefined' && callback !== null){
                         eval(callback+'()');
                     }
                     hideSpinner();
-                    showMessage(response.responseText);
+                    if(typeof response.responseText === 'string'){
+                        showMessage(response.responseText);
+                    }
                 }else{
                     hideSpinner();
                     if(typeof response.responseText === 'object'){

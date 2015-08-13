@@ -199,15 +199,16 @@ class Tools_Page_Tools
         $websiteConfig      = Zend_Registry::get('website');
         $pageUrl            = str_replace(DIRECTORY_SEPARATOR, '-', $pageHelper->clean($pageUrl));
         $previewPath        = $websiteHelper->getPath() . $websiteHelper->getPreview();
+        $lang               = isset($_COOKIE["screenLang"]) ? '_'.substr($_COOKIE["screenLang"], 0, strpos($_COOKIE["screenLang"], '_')) : '';
 
 //        $filelist           = Tools_Filesystem_Tools::findFilesByExtension($previewPath, '(jpg|gif|png)', false, false, false);
-        $currentPreviewList = glob($previewPath.$pageUrl.'.{jpg,jpeg,png,gif}', GLOB_BRACE);
+        $currentPreviewList = glob($previewPath.$pageUrl.$lang.'.{jpg,jpeg,png,gif}', GLOB_BRACE);
 
         if ($tmpPreviewFile) {
             $tmpPreviewFile = str_replace($websiteHelper->getUrl(), $websiteHelper->getPath(), $tmpPreviewFile);
             if (is_file($tmpPreviewFile) && is_readable($tmpPreviewFile)){
                 preg_match('/\.[\w]{2,6}$/', $tmpPreviewFile, $extension);
-                $newPreviewImageFile = $previewPath . $pageUrl . $extension[0];
+                $newPreviewImageFile = $previewPath . $pageUrl . $lang . $extension[0];
 
                 //cleaning form existing page previews
                 if(!empty($currentPreviewList)) {
@@ -250,7 +251,7 @@ class Tools_Page_Tools
                 Tools_Image_Tools::resize($newPreviewImageFile, $miscConfig['pageTeaserCropSize'], false, $cropPreviewDirPath, true);
                 unset($miscConfig);
 
-                return $pageUrl . $extension[0];
+                return $pageUrl . $lang . $extension[0];
 //                return $websiteHelper->getUrl() . $websiteConfig['preview'] . $pageUrl . $extension[0];
             }
         }

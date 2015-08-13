@@ -1,3 +1,4 @@
+<?php $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] . '/' : ''; ?>
 <?php if ($this->categoriesList): ?>
     <ul class="listcategories <?php echo $this->listClass; ?>">
         <?php foreach ($this->categoriesList as $page): ?>
@@ -6,13 +7,13 @@
                     <?php $pageUrl = $this->escape($page->getExternalLink()); ?>
                     <?php $targetBlank = 'target="_blank"'; ?>
                 <?php else: ?>
-                    <?php $pageUrl = $this->escape($this->websiteUrl . $page->getUrl()); ?>
+                    <?php $pageUrl = $this->escape($this->websiteUrl . $lang . $page->getUrl()); ?>
                     <?php $targetBlank = ''; ?>
                 <?php endif; ?>
                 <?php if ($this->useImage): ?>
                     <?php $src = Tools_Page_Tools::getPreview($page, $this->crop); ?>
                     <a class="page-teaser-image"
-                       href="<?php echo $this->escape($this->websiteUrl . $page->getUrl()); ?>"
+                       href="<?php echo $pageUrl; ?>"
                        title="<?php echo $page->getH1(); ?>">
                         <img src="<?php echo $src; ?>" alt="<?php echo $page->getH1(); ?>"/>
                     </a>

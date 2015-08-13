@@ -1,3 +1,4 @@
+<?php $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] . '/' : ''; ?>
 <?php if(isset($this->pagesList)): ?>
     <?php if($this->ajax) :?>
         <ul class="listpages <?php echo md5($this->categoryName); ?> <?php echo $this->listClass; ?>">
@@ -30,7 +31,7 @@
                     <?php $pageUrl = $this->escape($page->getExternalLink()); ?>
                     <?php $targetBlank = 'target="_blank"'; ?>
                 <?php else: ?>
-                    <?php $pageUrl = $this->escape($this->websiteUrl . $page->getUrl()); ?>
+                    <?php $pageUrl = $this->escape($this->websiteUrl . $lang . $page->getUrl()); ?>
                     <?php $targetBlank = ''; ?>
                 <?php endif; ?>
                 <?php if($this->useImage): ?>

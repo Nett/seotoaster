@@ -27,6 +27,10 @@ class Api_Toaster_Users extends Api_Service_Abstract
         ),
         Tools_Security_Acl::ROLE_USER => array(
             'allow' => array('get', 'put')
+        ),
+        // TODO: Think about interaction with roles for shopping
+        Tools_Security_Acl::ROLE_GUEST => array(
+            'allow' => array('get', 'put')
         )
     );
 
@@ -66,9 +70,7 @@ class Api_Toaster_Users extends Api_Service_Abstract
     {
         $id = intval(filter_var($this->_request->getParam('id'), FILTER_VALIDATE_INT));
         $data = json_decode($this->_request->getRawBody(), true);
-        if(isset($data['formData'])) {
-            parse_str($data['formData'], $data);
-        }
+
         if ($id && !empty($data)) {
             if (!Tools_Security_Acl::isAllowed(
                     Tools_Security_Acl::RESOURCE_USERS
@@ -84,9 +86,6 @@ class Api_Toaster_Users extends Api_Service_Abstract
                 Application_Model_Mappers_UserMapper::getInstance()->loadUserAttributes($user);
 
                 foreach ($data as $attribute => $value) {
-                    if(is_array($value)) {
-                        $value = implode(',', $value);
-                    }
                     $setter = 'set' . ucfirst(strtolower($attribute));
                     if (method_exists($user, $setter)) {
                         $user->$setter($value);
@@ -94,10 +93,7 @@ class Api_Toaster_Users extends Api_Service_Abstract
                         $user->setAttribute($attribute, $value);
                     }
                 }
-
-                if(!array_key_exists('password', $data) || empty($data['password'])) {
-                    $user->setPassword(false);
-                }
+                $user->setPassword(false);
                 Application_Model_Mappers_UserMapper::getInstance()->save($user);
                 $mailWatchdog = new Tools_Mail_Watchdog(array(
                     'trigger'  => Tools_Mail_SystemMailWatchdog::TRIGGER_USERCHANGEATTR,

@@ -13,35 +13,50 @@
     }
 
     .dialog{
-        overflow   : auto;
         position   : fixed;
         z-index    : 1001;
         width      : 100%;
-        max-width  : @grid-container-width * 0.75;
-        max-height : 50%;
-        top        : 25%;
+        height     : 100%;
+        top        : 0;
         left       : 0;
-        right      : 0;
-        margin     : 0 auto;
         text-align : center;
-        border     : 1px solid;
-        .border-radius(@state-border-radius);
-        .box-shadow(0 0 15px #ccc);
-        .alert-color(@state-primary-color, #fff, #ddd);
 
         // Alternate styles
         // -------------------------
-        &.success when (@alert-color-success = true) and (@alert-colors = true){
-            .alert-color(@state-success-color, #fff, @state-success-border);
+        &.primary{
+            .dialog-inner{
+                color            : @state-primary-color;
+                border-color     : @state-primary-border;
+                background-color : @state-primary-bg;
+            }
         }
-        &.warning when (@alert-color-warning = true) and (@alert-colors = true){
-            .alert-color(@state-warning-color, #fff, @state-warning-border);
+        &.success when (@alert-color-success) and (@alert-colors){
+            .dialog-inner{
+                color            : @state-success-color;
+                border-color     : @state-success-border;
+                background-color : @state-success-bg;
+            }
         }
-        &.error when (@alert-color-error = true) and (@alert-colors = true){
-            .alert-color(@state-error-color, #fff, @state-error-border);
+        &.warning when (@alert-color-warning) and (@alert-colors){
+            .dialog-inner{
+                color            : @state-warning-color;
+                border-color     : @state-warning-border;
+                background-color : @state-warning-bg;
+            }
         }
-        &.info when (@alert-color-info = true) and (@alert-colors = true){
-            .alert-color(@state-info-color, #fff, @state-info-border);
+        &.error when (@alert-color-error) and (@alert-colors){
+            .dialog-inner{
+                color            : @state-error-color;
+                border-color     : @state-error-border;
+                background-color : @state-error-bg;
+            }
+        }
+        &.info when (@alert-color-info) and (@alert-colors){
+            .dialog-inner{
+                color            : @state-info-color;
+                border-color     : @state-info-border;
+                background-color : @state-info-bg;
+            }
         }
 
         li{
@@ -55,48 +70,51 @@
     }
 
     .dialog-inner{
-        font-size : @font-size-large;
-        padding   : @padding-larger-vertical @padding-larger-horizontal;
-
-        *{
-            color : inherit;
-        }
-
-        p{ margin : 0 0 0.5em; }
-    }
-
-    .dialog-prompt{
-        margin-top : 0.75em;
-        .clearfix-mixin;
-
-        input, select, textarea{
-            float : none;
-        }
-    }
-
-    .form-errors{
-        max-height : 210px;
-        overflow   : auto;
+        position         : relative;
+        top              : 15%;
+        overflow         : auto;
+        max-width        : @grid-container-width * 0.75;
+        max-height       : 70%;
+        font-size        : @font-size-large;
+        padding          : .65em 2em;
+        border           : 1px solid @gray;
+        background-color : #fff;
+        .inline-block();
+        .border-radius(@state-border-radius);
+        .box-shadow(3px 3px 25px fade(#000, 25%));
     }
 
     .dialog-buttons{
-        margin-top : 1em;
-        font-size  : @font-size-base;
+        margin-top : .5em;
 
         button{
-            float  : none;
-            margin : 0 @padding-small-horizontal;
+            font-size : 12px;
             .button();
-            .border-radius(@button-border-radius);
-            .button-color(@button-success-color, @button-success-bg, @button-success-border);
+            .button-color(@button-success-color; @button-success-bg);
 
             &.cancel{
-                .button-color(@button-error-color, @button-error-bg, @button-error-border);
+                margin-right : .5em;
+                .button-color(@button-error-color; @button-error-bg);
             }
         }
     }
-}
 
+    // Alert type
+    &.smoke-alert{
+    }
+
+    &.smoke-confirm{
+    }
+
+    &.smoke-prompt{
+    }
+
+    &.smoke-quiz{
+    }
+
+    &.smoke-signal{
+    }
+}
 .ui-state-error{
     .alert-color(@state-error-color, @state-error-bg, @state-error-border);
 }

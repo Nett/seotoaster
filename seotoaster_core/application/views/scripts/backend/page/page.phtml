@@ -20,7 +20,7 @@
 		array(
 			'innerHeaderHtml' => $draftOrLive.$optimizedCheck.$externalLink,
 			'helpSection'     => $this->helpSection,
-			'localSection'    => $this->localSection
+			'langSection'     => $this->langSection
 		)
 	);
 	?>
@@ -53,59 +53,61 @@
 			<legend class="h2"><?php echo $this->translate('Page Information'); ?></legend>
 			<p class="mt0px"><?php echo $this->pageForm->getElement('h1'); ?></p>
 			<p><?php echo $this->pageForm->getElement('headerTitle'); ?></p>
-        	<p><?php echo $this->pageForm->getElement('url'); ?></p>
-            <span class="clearfix"></span>
+        	<p <?php if($this->currentLang) echo 'class="label-prefix"'; ?>>
+                <?php if($this->currentLang): ?>
+                <label id="currentLang" class="prefix" for="url"><?php echo $this->currentLang; ?>/</label>
+                <?php endif; ?>
+                <?php echo $this->pageForm->getElement('url'); ?>
+            </p>
 			<p><?php echo $this->pageForm->getElement('navName'); ?></p>
 			<p><?php echo $this->pageForm->getElement('metaKeywords'); ?></p>
 			<p><?php echo $this->pageForm->getElement('metaDescription'); ?></p>
 		</fieldset>
-		<div class="<?php if ($this->hideSettingsPage) echo 'hide'; ?>">
-			<fieldset class="grid_6 navigation mb2em">
-				<legend class="h2 required"><?php echo $this->translate('Navigation'); ?></legend>
-				<div class="btn-set mt0px">
-					<?php echo $this->toasterRadio('inMenu', $this->pageForm->getShowInMenu(), array('class' => 'menu-selector'), $this->pageForm->getElement('inMenu')->getMultiOptions(), ''); ?>
-				</div>
-				<div class="grid_12 alpha omega cl-both background mt0px">
-					<?php echo $this->formSelect('pageCategory', $this->pageForm->getParentId(), null, $this->pageForm->getElement('pageCategory')->getMultiOptions()); ?>
-					<div class="menu-info mt5px">Please select menu for this page</div>
-				</div>
-			</fieldset>
-			<fieldset class="grid_6 settings mb1-75em">
-				<legend class="h2 grid_4 alpha"><?php echo $this->translate('Settings'); ?></legend>
-				<div class="grid_8 alpha omega text-right featured-link mt0px">
-					<span class="ticon-tags icon14"></span>
-					<?php
-						echo !$this->faCount ? '<a class="featured" href="javascript:;" title="tags">' . $this->translate('Tag this page') . '</a>' : $this->translate('Page was added') . ' <span class="featured-count">' . $this->faCount . '</span> ' . $this->translate('times in') . ' <a class="featured" href="javascript:;" title="tags">tags</a>';
-					?>
-				</div>
-				<div class="cl-both background mt5px template-section">
-					<label class="grid_4 alpha omega required"><?php echo $this->pageForm->getElement('templateId')->getLabel(); ?>:</label>
-					<?php echo $this->pageForm->getElement('templateId')->renderViewHelper(); ?>
-					<div class="grid_8 alpha omega mb10px">
-						<a id="curr-template" for="templateId" href="javascript:;"><?php echo $this->translate('Select template');?></a>
-					</div>
-					<label class="grid_4 alpha omega mt5px"> <?php echo $this->translate('This page is'); ?></label>
-					<?php echo $this->pageForm->getElement('extraOptions'); ?>
-				</div>
-			</fieldset>
-			<fieldset class="grid_6">
-				<legend class="h2 mb0px"><?php echo $this->translate('Page Teasers'); ?></legend>
-				<div id="page-preview" class="grid_4 ml0 mr4 page-preview">
-					<img id="page-preview-image" src="<?php echo $this->pagePreviewImage ?>" width="135" alt="<?php echo $this->translate('Page preview image');?>" />
-					<span class="ticon-folder-upload hide"><?php echo $this->translate('Upload an image');?></span>
-					<?php
-						$uploader = $this->toasterUploader(array('id' => 'page-teaser-uploader','caller' => 'pagePreview', 'noMultiupload' => true, 'caption' => " "));
-						echo $uploader;
-					?>
-				</div>
-				<div  class="grid_8 alpha omega">
-					<?php echo $this->pageForm->getElement('teaserText')->setAttrib(
-						'placeholder',
-						$this->translate('Insert a text snippet. You can then call that text when creating page lists. It can also be used by the integrated search engine.')
-					); ?>
-				</div>
-			</fieldset>
-		</div>
+        <fieldset class="grid_6 navigation mb2em" <?php if ($this->readOnlyOptions) echo 'style="visibility:hidden;"'; ?>>
+            <legend class="h2 required"><?php echo $this->translate('Navigation'); ?></legend>
+            <div class="btn-set mt0px">
+                <?php echo $this->toasterRadio('inMenu', $this->pageForm->getShowInMenu(), array('class' => 'menu-selector'), $this->pageForm->getElement('inMenu')->getMultiOptions(), ''); ?>
+            </div>
+            <div class="grid_12 alpha omega cl-both background mt0px">
+                <?php echo $this->formSelect('pageCategory', $this->pageForm->getParentId(), null, $this->pageForm->getElement('pageCategory')->getMultiOptions()); ?>
+                <div class="menu-info mt5px">Please select menu for this page</div>
+            </div>
+        </fieldset>
+        <fieldset class="grid_6 settings mb1-75em" <?php if ($this->readOnlyOptions) echo 'style="visibility:hidden;"'; ?>>
+            <legend class="h2 grid_4 alpha"><?php echo $this->translate('Settings'); ?></legend>
+            <div class="grid_8 alpha omega text-right featured-link mt0px">
+                <span class="ticon-tags icon14"></span>
+                <?php
+                    echo !$this->faCount ? '<a class="featured" href="javascript:;" title="tags">' . $this->translate('Tag this page') . '</a>' : $this->translate('Page was added') . ' <span class="featured-count">' . $this->faCount . '</span> ' . $this->translate('times in') . ' <a class="featured" href="javascript:;" title="tags">tags</a>';
+                ?>
+            </div>
+            <div class="cl-both background mt5px template-section">
+                <label class="grid_4 alpha omega required"><?php echo $this->pageForm->getElement('templateId')->getLabel(); ?>:</label>
+                <?php echo $this->pageForm->getElement('templateId')->renderViewHelper(); ?>
+                <div class="grid_8 alpha omega mb10px">
+                    <a id="curr-template" for="templateId" href="javascript:;"><?php echo $this->translate('Select template');?></a>
+                </div>
+                <label class="grid_4 alpha omega mt5px"> <?php echo $this->translate('This page is'); ?></label>
+                <?php echo $this->pageForm->getElement('extraOptions'); ?>
+            </div>
+        </fieldset>
+        <fieldset class="grid_6">
+            <legend class="h2 mb0px"><?php echo $this->translate('Page Teasers'); ?></legend>
+            <div id="page-preview" class="grid_4 ml0 mr4 page-preview">
+                <img id="page-preview-image" src="<?php echo $this->pagePreviewImage ?>" width="135" alt="<?php echo $this->translate('Page preview image');?>" />
+                <span class="ticon-folder-upload hide"><?php echo $this->translate('Upload an image');?></span>
+                <?php
+                    $uploader = $this->toasterUploader(array('id' => 'page-teaser-uploader','caller' => 'pagePreview', 'noMultiupload' => true, 'caption' => " "));
+                    echo $uploader;
+                ?>
+            </div>
+            <div  class="grid_8 alpha omega">
+                <?php echo $this->pageForm->getElement('teaserText')->setAttrib(
+                    'placeholder',
+                    $this->translate('Insert a text snippet. You can then call that text when creating page lists. It can also be used by the integrated search engine.')
+                ); ?>
+            </div>
+        </fieldset>
         <?php echo $this->pageForm->getElement('removePreviousOption'); ?>
 		<?php echo $this->pageForm->getElement('pageId'); ?>
 		<?php echo $this->pageForm->getElement('draft'); ?>
@@ -115,14 +117,26 @@
         <?php echo $this->pageForm->getElement('externalLink'); ?>
 		<?php echo $this->pageForm->getElement('pageType'); ?>
         <input type="hidden" class="secureToken" name="secureToken" value="<?php echo $this->secureToken;?>"/>
+        <div class="clearfix"></div>
+        <div class="footer">
         <?php echo $this->pageForm->getElement('updatePage'); ?>
+        <?php if ($this->localizationActive): ?>
+            <input id="currentReload" class="hidden" type="checkbox" name="currentReload"/>
+            <button id="apply-changes" class="btn outline-bg ticon-checkmark2 mr-grid" type="submit">Apply changes</button>
+            <?php if($this->readOnlyOptions && $this->pageForm->getElement('pageId')->getValue()): ?>
+                <a id="del-this-page" class="error fl-left ml-grid" href="javascript:;" data-cid="<?php echo $this->pageForm->getElement('pageCategory')->getValue(); ?>" title="<?php echo $this->translate('Delete this page'); ?>">[ <?php echo $this->translate('Delete this page'); ?> ]</a>
+            <?php endif; ?>
+        <?php endif; ?>
+        </div>
         <input type="hidden" name="original-page-url" id="original-page-url" value="<?php echo $this->pageForm->getElement('url')->getValue(); ?>">
 	</form>
 </div>
 <script type="text/javascript">
 	$(function() {
+        var $form = $('#frm-page');
 		$('#h1').focus();
 		$('#templateId').val() ? $('#curr-template').text($('#templateId').val()) :'';
+        var startData = $form.serialize();
 		$(document).on('click', '#curr-template', function(){
 			$('#templatelist').show("slide", { direction: "right"});
 			if(!$('#templatelist').find('.content').length){
@@ -130,6 +144,24 @@
 			}
 		}).on('click', '.featured', function(){
             $('#falist').show("slide", { direction: "right"});
+        }).on('click', '#apply-changes', function(){
+            $('#currentReload').prop('checked', true);
+            $form.toggleClass('_reload _reload-screen');
+        }).on('click', '.language-link', function(e){
+            var href = $(this).attr('href');
+            if(startData !== $form.serialize()){
+                e.preventDefault();
+                <?php
+                    $lang = $this->currentLang ? $this->currentLang : Tools_Localization_Tools::getLangDefault();
+                    $lang = $this->localizationActive[$lang];
+                 ?>
+                showConfirm('<?php echo $this->translate('Save changes to the ' . $lang . ' language?');?>', function(){
+                    $form.removeClass('_reload').submit();
+                    location.href = href;
+                }, function(){
+                    location.href = href;
+                });
+            }
         });
 
         var container = jsPageTeaserUploader;

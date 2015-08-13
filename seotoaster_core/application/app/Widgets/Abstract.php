@@ -49,7 +49,7 @@ abstract class Widgets_Abstract implements Zend_Acl_Resource_Interface
 
         /** Check developer mode status. */
         $this->_developerModeStatus = (bool)Zend_Controller_Action_HelperBroker::getStaticHelper('config')
-            ->getConfig('enableDeveloperMode');
+                                            ->getConfig('enableDeveloperMode');
 
         $this->_setDeveloperModeProp();
 
@@ -58,10 +58,14 @@ abstract class Widgets_Abstract implements Zend_Acl_Resource_Interface
             $this->_cache     = Zend_Controller_Action_HelperBroker::getStaticHelper('Cache');
             $this->_widgetId  = strtolower(get_called_class());
             $this->_widgetId .= (!empty($this->_options) ? '_'.implode('_', $this->_options) : '');
-            $this->_cacheId   = (isset($toasterOptions['id']))
-                ? 'page_'.$toasterOptions['id'].(isset($toasterOptions['lang']) ? '_lang_'.$toasterOptions['lang'] : '')
-                : strtolower(get_called_class());
-            $this->_cacheId  .= '_'.$roleId.'_lifeTime_'.$this->_cacheLifeTime;
+
+            if (isset($toasterOptions['id'])) {
+                $this->_cacheId = 'page_'.$toasterOptions['id'].(isset($toasterOptions['lang']) ? '_lang_'.$toasterOptions['lang'] : '');
+            }
+            else {
+                $this->_cacheId = strtolower(get_called_class());
+            }
+            $this->_cacheId .= '_'.$roleId.'_lifeTime_'.$this->_cacheLifeTime;
         }
 
         $this->_translator = Zend_Registry::get('Zend_Translate');

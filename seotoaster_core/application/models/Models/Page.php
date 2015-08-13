@@ -84,6 +84,8 @@ class Application_Model_Models_Page extends Application_Model_Models_Abstract im
 
     protected $_containers        = array();
 
+    protected $_containersMain        = array();
+
     protected $_externalLinkStatus = 0;
 
     protected $_externalLink = '';
@@ -100,6 +102,20 @@ class Application_Model_Models_Page extends Application_Model_Models_Abstract im
      */
     public function getContainers() {
         return $this->_containers;
+    }
+
+    /**
+     * @param array $containers
+     */
+    public function setContainersMain($containersMain) {
+        $this->_containersMain = $containersMain;
+    }
+
+    /**
+     * @return array
+     */
+    public function getContainersMain() {
+        return $this->_containersMain;
     }
 
 

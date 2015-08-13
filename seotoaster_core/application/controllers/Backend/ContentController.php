@@ -34,6 +34,7 @@ class Backend_ContentController extends Zend_Controller_Action {
 		$this->_containerType     = $this->getRequest()->getParam('containerType');
 		$this->_contentForm       = $this->_initCorrectForm();
 		$this->view->websiteUrl   = $this->_helper->website->getUrl();
+		$this->view->currentLang  = $this->getRequest()->getParam('lang');
 		$this->view->currentTheme = $this->_helper->config->getConfig('currentTheme');
 
         // content help section
@@ -57,21 +58,31 @@ class Backend_ContentController extends Zend_Controller_Action {
 		if($this->_containerType == Application_Model_Models_Container::TYPE_REGULARCONTENT || $this->_containerType == Application_Model_Models_Container::TYPE_STATICCONTENT) {
 			$this->view->pluginsTabs = $this->_loadPluginsTabs();
 		}
+        $this->_addlangSection(null, $this->getRequest()->getParam('pageId'), new Application_Model_Models_Container());
 		echo $this->_renderCorrectView();
 	}
 
 	public function editAction() {
 		if(!$this->getRequest()->isPost()) {
             $container = Application_Model_Mappers_ContainerMapper::getInstance();
-            if ($this->getRequest()->getParam('id')) {
-                $container = $container->find(
-                    $this->getRequest()->getParam('id')
-                );
+
+            $containerId = !$this->getRequest()->getParam('id') ? $this->getRequest()->getParam('defaultLangId') : $this->getRequest()->getParam('id');
+            if ($containerId) {
+                $container = $container->find($containerId);
             } else {
                 $container = $container->findByName(
                     $this->getRequest()->getParam('name'), $this->getRequest()->getParam('pageId'), $this->getRequest()->getParam('containerType')
                 );
             }
+
+            if($this->getRequest()->getParam('defaultLangId')
+                && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))
+            ){
+                $container->setLang(Zend_Locale::getLocaleToTerritory($lang));
+                $container->setPageId($this->getRequest()->getParam('pageId'));
+                $container->setId(null);
+            }
+
 			if(null === $container) {
 				throw new Exceptions_SeotoasterException('Container loading failed.');
 			}
@@ -81,6 +92,7 @@ class Backend_ContentController extends Zend_Controller_Action {
 			$this->_contentForm->getElement('content')->setValue($container->getContent());
 			$this->_contentForm->getElement('containerName')->setValue($container->getName());
 			$this->_contentForm->getElement('containerId')->setValue($container->getId());
+			$this->_contentForm->getElement('defaultLangId')->setValue($container->getDefaultLangId());
 			$this->_contentForm->getElement('pageId')->setValue($container->getPageId());
 			$this->_contentForm->getElement('containerType')->setValue($container->getContainerType());
 			$this->_contentForm->setPublished($container->getPublished());
@@ -91,6 +103,8 @@ class Backend_ContentController extends Zend_Controller_Action {
 			if($container->getContainerType() == Application_Model_Models_Container::TYPE_REGULARCONTENT || $container->getContainerType() == Application_Model_Models_Container::TYPE_STATICCONTENT) {
 				$this->view->pluginsTabs = $this->_loadPluginsTabs();
 			}
+
+            $this->_addlangSection($container->getDefaultLangId(), $container->getPageId(), $container);
 		}
 		else {
 			$this->_processContent();
@@ -127,12 +141,17 @@ class Backend_ContentController extends Zend_Controller_Action {
 				'action' => Tools_System_GarbageCollector::CLEAN_ONUPDATE
 			)));
 
+            $lang = $this->getRequest()->getParam('lang') ? filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING) : Tools_Localization_Tools::getLangDefault();
 			$container->setId($containerId)
 				->setName($containerData['containerName'])
 				->setContainerType($containerData['containerType'])
 				->setPageId($pageId)
 				->setContent($containerData['content'])
-			    ->setLang($containerData['lang']);
+			    ->setLang(Zend_Locale::getLocaleToTerritory($lang));
+
+            if($defaultLangId = $this->getRequest()->getParam('defaultLangId')){
+                $container->setDefaultLangId($defaultLangId);
+            }
 
 			$published = ($container->getContainerType() == Application_Model_Models_Container::TYPE_REGULARCONTENT || $container->getContainerType() == Application_Model_Models_Container::TYPE_STATICCONTENT) ? $this->getRequest()->getParam('published') : true;
 			$container->setPublished($published);
@@ -159,16 +178,87 @@ class Backend_ContentController extends Zend_Controller_Action {
 			} catch(Exceptions_SeotoasterWidgetException $twe) {
 				$this->_helper->response->fail($twe->getMessage());
 			}
-			$this->_helper->response->success($saveResult);
+            $currentReload = $this->getRequest()->getParam('currentReload');
+            $redirectTo = null;
+            if(isset($currentReload) && !empty($currentReload) && $currentReload){
+                $redirectTo .= $this->getRequest()->getBaseUrl() . '/backend/backend_content/';
+                $currentLang = $this->getRequest()->getParam('lang');
+                if($container->getId() && $container->getContent()){
+                    $redirectTo .= 'edit/id/' . $container->getId();
+                }else if($currentLang !== null && $currentLang !== Tools_Localization_Tools::getLangDefault()){
+                    $redirectTo .= 'edit/defaultLangId/' . $container->getDefaultLangId() . '/pageId/' . $container->getPageId();
+                }else{
+                    $redirectTo .= 'add/containerName/' . $container->getName() . '/pageId/' . $container->getPageId();
+                }
+                $redirectTo .= '/containerType/' . $container->getContainerType() . '/lang/'. $currentLang;
+            }
+			$this->_helper->response->success(array(
+                'redirectTo' => $redirectTo,
+                'message' => 'Content saved!'
+            ));
 			exit;
 		}
 		return false;
 	}
 
+    private function _addlangSection($defaultLangId, $pageId,  Application_Model_Models_Container $containerModel)
+    {
+        $this->view->langSection = array();
+        if (!is_numeric($defaultLangId) || (int)$defaultLangId === 0) {
+            return false;
+        }
+
+        $activeLanguagesList = Tools_Localization_Tools::getActiveLanguagesList();
+        if (sizeof($activeLanguagesList) > 1) {
+            if($pageId !== null) {
+                $pageData = Application_Model_Mappers_PageMapper::getInstance()->find($pageId);
+                $pagesData = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData(
+                    $pageData->getDefaultLangId()
+                );
+            }
+            $containers  = Application_Model_Mappers_ContainerMapper::getInstance()->getCurrentContainerLocalData($defaultLangId);
+            $path        = $this->_helper->website->getUrl().'backend/backend_content/';
+            $langDefault = Tools_Localization_Tools::getLangDefault();
+
+            foreach ($activeLanguagesList as $code => $name) {
+                if ((null === ($langCode = Zend_Locale::getLocaleToTerritory($code)))
+                        || (isset($pagesData) && !isset($pagesData[$langCode]))) {
+                    if ($this->_containerType != Application_Model_Models_Container::TYPE_STATICCONTENT
+                            || $this->_containerType != Application_Model_Models_Container::TYPE_STATICHEADER){
+                        continue;
+                    }
+                }
+
+                $action = 'Edit';
+                $url = $path . 'edit/';
+                if(!isset($containers[$langCode]['id'])){
+                    $url .= 'defaultLangId/' . $containerModel->getDefaultLangId() . ($pageId !== null ? '/pageId/' . $pagesData[$langCode]['id'] : '');
+                    $action = 'Add';
+                }else{
+                    $url .= 'id/' . $containers[$langCode]['id'];
+                }
+                $url .= '/containerType/' . $containerModel->getContainerType() . '/lang/' . $code;
+
+                $this->view->langSection[$code] = array(
+                    'title'  => $action .' '. $name .' translation',
+                    'active' => ($langCode === $containerModel->getLang()),
+                    'href'   => $url
+                );
+
+                if($langCode === $containerModel->getLang()){
+                    $this->view->currentLang = ($langDefault !== $code ? $code : false);
+                }
+            }
+        }
+
+        return !empty($this->view->langSection) ? true : false;
+    }
+
 	private function _renderCorrectView() {
         $secureToken = Tools_System_Tools::initZendFormCsrfToken($this->_contentForm, Tools_System_Tools::ACTION_PREFIX_CONTAINERS);
         $this->view->secureToken = $secureToken;
         $this->view->contentForm = $this->_contentForm;
+        $this->view->localizationActive = Tools_Localization_Tools::getActiveLanguagesList();
 		$rendered = '';
 		switch ($this->_containerType) {
 			case Application_Model_Models_Container::TYPE_REGULARCONTENT:
@@ -178,7 +268,7 @@ class Backend_ContentController extends Zend_Controller_Action {
 					'medium' => $this->_helper->config->getConfig('imgMedium'),
 					'large'  => $this->_helper->config->getConfig('imgLarge')
 				);
-                $this->view->linkResetCss     = Tools_Theme_Tools::urlResetCss();
+                $this->view->linkResetCss       = Tools_Theme_Tools::urlResetCss();
                 $this->view->linkContentCss     = Tools_Theme_Tools::urlContentCss();
 				$this->view->pluginsEditorLinks = $this->_loadPluginsEditorLinks();
 				$this->view->pluginsEditorTop   = $this->_loadPluginsEditorTop();

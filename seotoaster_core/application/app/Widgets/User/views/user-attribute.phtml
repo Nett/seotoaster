@@ -1,34 +1,7 @@
 <?php if(isset($this->readonly)):?>
     <?php echo $this->value;?>
-<?php else :
-    $attributes = array(
-        'class' => 'user-attribute',
-        'data-uid' => $this->userId,
-        'data-attribute' => $this->attribute
-    );
-    switch($this->attrType) {
-        case 'textarea':
-            echo $this->formTextarea($this->attribute, $this->value, $attributes);
-            break;
-        case 'checkbox':
-            if(in_array($this->attrValue, $this->value)) {
-                $attributes['checked'] = true;
-            }
-            echo $this->formCheckbox($this->attribute.'[]', $this->attrValue, $attributes);
-            break;
-        case 'radio':
-            echo $this->formRadio($this->attribute, $this->value, $attributes, $this->attrValue);
-            break;
-        case 'select':
-            echo $this->formSelect($this->attribute, $this->value, $attributes, $this->attrValue);
-            break;
-        case 'password':
-            echo $this->formPassword($this->attribute, $this->value, $attributes);
-            break;
-        case 'input':
-        default:
-            echo $this->formText($this->attribute, $this->value, $attributes);
-            break;
-    }
-?>
+<?php else : echo "<input type='text' class='user-attribute'
+       data-uid=".$this->userId."
+       data-attribute=".$this->attribute."
+       value=".$this->value.">"; ?>
 <?php endif; ?>

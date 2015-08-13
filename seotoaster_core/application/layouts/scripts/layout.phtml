@@ -91,6 +91,7 @@
 <?php echo $this->layout()->content; ?>
 <?php echo isset($this->placeholder('seo')->seoBottom) ? $this->placeholder('seo')->seoBottom: ''; ?>
 <input type="hidden" id="website_url" value="<?php echo $this->websiteUrl; ?>" />
+<input type="hidden" id="current_lang" value="<?php echo $this->currentLang; ?>" />
 <input type="hidden" id="current_theme" value="<?php echo $this->currentTheme; ?>" />
 <input type="hidden" id="page_id" value="<?php echo $this->pageData['id']; ?>">
 <?php if(isset($this->sculptingReplacement)): ?>

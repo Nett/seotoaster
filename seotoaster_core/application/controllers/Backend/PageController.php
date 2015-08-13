@@ -45,50 +45,55 @@ class Backend_PageController extends Zend_Controller_Action {
      *
      * @return bool
      */
-    private function _addLocalSection($defaultLangId, Application_Model_Models_Page $pageModel)
+    private function _addlangSection($defaultLangId, Application_Model_Models_Page $pageModel)
     {
-        $this->view->localSection = array();
+        $this->view->langSection = array();
         if (!is_numeric($defaultLangId) || (int)$defaultLangId === 0) {
             return false;
         }
 
-        $activeLocalList = Tools_Localisation_Tools::getActiveLocalList();
-        if (sizeof($activeLocalList) > 1) {
+        $activeLanguagesList = Tools_Localization_Tools::getActiveLanguagesList();
+        if (sizeof($activeLanguagesList) > 1) {
             $pages       = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($defaultLangId);
             $path        = $this->_helper->website->getUrl().'backend/backend_page/page/';
-            $langDefault = Tools_Localisation_Tools::getLangDefault();
-            foreach ($activeLocalList as $code => $name) {
+            $langDefault = Tools_Localization_Tools::getLangDefault();
+
+            foreach ($activeLanguagesList as $code => $name) {
                 if (null === ($langCode = Zend_Locale::getLocaleToTerritory($code))) {
                     continue;
                 }
 
-                $this->view->localSection[$code] = array(
-                    'name'   => $name,
+                $action = isset($pages[$langCode]['id']) ? 'Edit' : 'Add';
+
+                $this->view->langSection[$code] = array(
+                    'title'  => $action .' '. $name .' translation',
                     'active' => ($langCode === $pageModel->getLang()),
-                    'action' => $this->_helper->language->translate(
-                        ($langDefault === $code) ? 'default edit' : (isset($pages[$langCode]['id']) ? 'edit' : 'add')
-                    ),
-                    'href'   => $path.((isset($pages[$langCode]['id']))
-                            ? 'id/'.$pages[$langCode]['id']
-                            : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
+                    'href'   => $path.(isset($pages[$langCode]['id'])
+                                    ? 'id/'.$pages[$langCode]['id']
+                                    : 'defaultLangId/'.$defaultLangId.'/lang/'.$code)
                 );
+
+                if($langCode === $pageModel->getLang()){
+                    $this->view->currentLang = ($langDefault !== $code ? $code : false);
+                }
             }
         }
 
-        return !empty($this->view->localSection) ? true : false;
+        return !empty($this->view->langSection) ? true : false;
     }
 
-    public function pageAction()
-    {
+    public function pageAction() {
         $checkFaPull = false; //flag shows that system needs to check featured areas in session
         $pageForm    = new Application_Form_Page();
         $pageId      = $this->getRequest()->getParam('id');
         $mapper      = Application_Model_Mappers_PageMapper::getInstance();
 
-        $this->view->secureToken = Tools_System_Tools::initZendFormCsrfToken(
+        $secureToken = Tools_System_Tools::initZendFormCsrfToken(
             $pageForm,
             Tools_System_Tools::ACTION_PREFIX_PAGES
         );
+
+        $this->view->secureToken = $secureToken;
 
         $defaultLangId = filter_var($this->getRequest()->getParam('defaultLangId'), FILTER_SANITIZE_NUMBER_INT);
         if ($defaultLangId || $pageId) {
@@ -100,30 +105,39 @@ class Backend_PageController extends Zend_Controller_Action {
         }
 
         // Lang section
-        $this->view->hideSettingsPage = true;
+        $this->view->readOnlyOptions = true;
         if (($defaultLangId = !empty($defaultLangId) ? $defaultLangId : $page->getDefaultLangId())
             && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))
         ) {
             $page->setOptimized(false);
-            $page->setUrl(implode('-'.$lang.'.', explode('.', $page->getUrl())));
             $page->setLang(Zend_Locale::getLocaleToTerritory($lang));
             $page->setId(null);
-            $page->setShowInMenu(Application_Model_Models_Page::IN_NOMENU);
+//            $page->setShowInMenu(Application_Model_Models_Page::IN_NOMENU);
         }
         else {
-            $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localisation_Tools::getLangDefault());
+            $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
             if (null === $page->getLang()) {
                 $page->setLang($langDefault);
             }
 
             if ($langDefault === $page->getLang()) {
-                $this->view->hideSettingsPage = false;
+                $this->view->readOnlyOptions = false;
             }
         }
-        $this->_addLocalSection($defaultLangId, $page);
+
+        setcookie("screenLang", $page->getLang());
+
+        $this->_addlangSection($defaultLangId, $page);
+        $this->view->localizationActive = Tools_Localization_Tools::getActiveLanguagesList();
 
         if(!$this->getRequest()->isPost()) {
             $pageForm->getElement('pageCategory')->addMultiOptions($this->_getMenuOptions($page));
+            if($this->getRequest()->getParam('defaultLangId') && $page->getParentId() > 0){
+                $pageParent = $mapper->find($page->getParentId());
+                $pageLangs = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($pageParent->getDefaultLangId());
+                $pageParentId = $pageLangs[$page->getLang()]['id'];
+                $page->setParentId($pageParentId);
+            }
             $pageForm->getElement('pageCategory')->setValue($page->getParentId());
 
             if($page instanceof Application_Model_Models_Page) {
@@ -167,7 +181,8 @@ class Backend_PageController extends Zend_Controller_Action {
                 //if we'r creating page -> check that we do not have an identical urls
                 if(!$pageId) {
                     $pageExists = $mapper->findByUrl($pageData['url']);
-                    if($pageExists instanceof Application_Model_Models_Page) {
+                    $currentLang = isset($params['lang']) ? Zend_Locale::getLocaleToTerritory($params['lang']) : $langDefault;
+                    if($pageExists instanceof Application_Model_Models_Page && $pageExists->getLang() === $currentLang) {
                         $this->_helper->response->fail('Page with url <strong>' . $pageData['url'] . '</strong> already exists.');
                         exit;
                     }
@@ -281,6 +296,9 @@ class Backend_PageController extends Zend_Controller_Action {
                     $mapper->publishChildPages($params['pageId']);
                 }
 
+                if($page->getLang() === Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault())){
+                    $mapper->updateLangPages($params['pageId'], $page);
+                }
                 $page = $mapper->save($page);
 
                 if($checkFaPull) {
@@ -289,11 +307,19 @@ class Backend_PageController extends Zend_Controller_Action {
 
                 $page->notifyObservers();
 
-                $redirectTo = $page->getUrl();
+
+                $locale     = new Zend_Locale($page->getLang());
+                $redirectTo = $locale->getLanguage() . '/' . $page->getUrl();
                 if ($externalLink && !$optimized) {
                     $redirectTo = 'index.html';
                 }
-                $this->_helper->response->success(array('redirectTo' => $redirectTo));
+                if(isset($params['currentReload']) && !empty($params['currentReload'])){
+                    $redirectTo = $this->getRequest()->getBaseUrl() . '/backend/backend_page/page/id/' .$page->getId();
+                }
+                $this->_helper->response->success(array(
+                    'redirectTo' => $redirectTo,
+                    'message' => 'Page saved!'
+                ));
                 exit;
             }
             $messages = array_merge($pageForm->getMessages(), $messages);
@@ -306,6 +332,7 @@ class Backend_PageController extends Zend_Controller_Action {
         //page preview image
         $this->view->pagePreviewImage = Tools_Page_Tools::getPreview($page);//Tools_Page_Tools::processPagePreviewImage($page->getUrl());
         $this->view->sambaOptimized   = $page->getOptimized();
+
         // page help section
         $this->view->helpSection      = (!isset($defaultLangId) && $pageId) ? 'editpage' : 'addpage';
 
@@ -499,7 +526,12 @@ class Backend_PageController extends Zend_Controller_Action {
         $this->_helper->viewRenderer->setNoRender(true);
         $this->_helper->layout->disableLayout();
 
-        $where = $this->_getProductCategoryPageWhere();
+        $lang = $this->getRequest()->getParam('lang')
+                ? filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING)
+                : Tools_Localization_Tools::getLangDefault();
+
+        $where = "lang = '" . Zend_Locale::getLocaleToTerritory($lang) . "'";
+        $where .= $this->_getProductCategoryPageWhere();
         $whereQuote = $this->_getQuotePageWhere();
         if($where !== null && $whereQuote !== null) {
             $where .= ' AND ' . $whereQuote;
@@ -514,7 +546,7 @@ class Backend_PageController extends Zend_Controller_Action {
                 if ($page->getExtraOption(Application_Model_Models_Page::OPT_404PAGE)) {
                     continue;
                 }
-                array_push($links, array('title'=>$page->getH1(), 'value'=>$this->_helper->website->getUrl() . $page->getUrl()));
+                array_push($links, array('title'=>$page->getH1(), 'value'=>$this->_helper->website->getUrl() . $lang.'/' . $page->getUrl()));
             }
             $this->getResponse()->setBody(Zend_Json::encode($links));
         }

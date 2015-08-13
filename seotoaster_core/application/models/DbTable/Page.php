@@ -22,10 +22,11 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
 	);
 
     public function fetchAllMenu($menuType, $fetchSysPages = false) {
+        $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : Tools_Localization_Tools::getLangDefault();
         $where    = $this->getAdapter()->quoteInto("show_in_menu = '?'", $menuType);
         $sysWhere = $this->getAdapter()->quoteInto("system = '?'", intval($fetchSysPages));
         $select   = $this->getAdapter()->select()
-            ->from('page', array('id', 'parentId' => 'parent_id', 'protected', 'external_link_status', 'external_link'))
+            ->from('page', array('id', 'parentId' => 'parent_id', 'protected', 'external_link_status', 'external_link', 'default_lang_id'))
             ->joinLeft('optimized', 'page_id = id', null)
             ->columns(array(
                 'url'          => new Zend_Db_Expr('COALESCE(optimized.url, page.url)'),
@@ -36,6 +37,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
             ))
             ->where($sysWhere)
             ->where($where)
+            ->where("lang = '" . Zend_Locale::getLocaleToTerritory($lang) . "'")
             ->order(array('order'));
 
 	    if ($menuType === Application_Model_Models_Page::IN_MAINMENU){
@@ -43,7 +45,9 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
                 ->distinct()->from('page', 'id')
                 ->where("parent_id = '?'", Application_Model_Models_Page::IDCATEGORY_CATEGORY)
                 ->where($sysWhere)
-                ->where($where)->__toString();
+                ->where($where)
+                ->where("lang = '" . Zend_Locale::getLocaleToTerritory($lang) . "'")
+                ->__toString();
             $select->where("parent_id = '?' OR parent_id IN (".$subSelect.")", Application_Model_Models_Page::IDCATEGORY_CATEGORY);
         }
 
@@ -93,7 +97,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
         ));
     }
 
-    public function findByUrl($pageUrl = Helpers_Action_Website::DEFAULT_PAGE)
+    public function findByUrl($pageUrl = Helpers_Action_Website::DEFAULT_PAGE, $language)
     {
         $select = $this->_getOptimizedSelect(
                 false,
@@ -113,8 +117,16 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
             ->columns(array('content' => 'template.content'));
 
         $where  = $this->getAdapter()->quoteInto('page.url = ?', $pageUrl);
-        $where .= ' OR '.$this->getAdapter()->quoteInto('optimized.url = ?', $pageUrl);
+        $where .= $this->getAdapter()->quoteInto('AND page.lang = ?', $language);
+//        $where .= $this->getAdapter()->quoteInto('OR page.url = ?', $pageUrl);
+        $where .= $this->getAdapter()->quoteInto('OR optimized.url = ?', $pageUrl);
         $select->where($where);
+
+        $select->join('template', 'page.template_id=template.name', null)
+            ->columns(array(
+                'content' => 'template.content'
+            ))
+            ->where($where);
 
         $row = $this->getAdapter()->fetchRow($select);
 
@@ -132,12 +144,31 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
             'container_type',
             'content',
             'published',
-            'publishing_date'
+            'publishing_date',
+            'default_lang_id'
         ))
         ->where("page_id = '".$row['id']."' AND lang = '".$row['lang']."'")
         ->orWhere("page_id IS NULL AND lang = '".$row['lang']."'");
 
         $row['containers'] = $this->getAdapter()->fetchAssoc($select);
+
+        if($row['default_lang_id'] !== $row['id']){
+            $selectFrom = $this->getAdapter()->select()->from('container', array(
+                    'uniqName' => new Zend_Db_Expr("CONCAT_WS('-', `name`,`container_type`)"),
+                    'id',
+                    'name',
+                    'page_id',
+                    'container_type',
+                    'content',
+                    'published',
+                    'publishing_date',
+                    'default_lang_id'
+                ));
+            $pageMainLang = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
+            $selectMain = $selectFrom->where("page_id = '".$row['default_lang_id']."' AND lang = '".$pageMainLang."'")
+                ->orWhere("page_id IS NULL AND lang = '".$pageMainLang."'");
+            $row['containersMain'] = $this->getAdapter()->fetchAssoc($selectMain);
+        }
         return $row;
     }
 
@@ -224,7 +255,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
                 'meta_description'    => new Zend_Db_Expr('COALESCE(optimized.meta_description, page.meta_description)'),
                 'meta_keywords'       => new Zend_Db_Expr('COALESCE(optimized.meta_keywords, page.meta_keywords)'),
                 'teaser_text'         => new Zend_Db_Expr('COALESCE(optimized.teaser_text, page.teaser_text)'),
-                'optimized'         => new Zend_Db_Expr('COALESCE(optimized.url, optimized.h1, optimized.header_title, optimized.nav_name, optimized.targeted_key_phrase, optimized.meta_description, optimized.meta_keywords, optimized.teaser_text, NULL)')
+                'optimized'           => new Zend_Db_Expr('COALESCE(optimized.url, optimized.h1, optimized.header_title, optimized.nav_name, optimized.targeted_key_phrase, optimized.meta_description, optimized.meta_keywords, optimized.teaser_text, NULL)')
             ));
     }
 }

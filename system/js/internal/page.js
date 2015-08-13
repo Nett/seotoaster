@@ -72,12 +72,10 @@ function checkMenu(currentMenuItem, selectedOption) {
         break;
     case MAIN_MENU_ID:
         selector.find('option[value="-1"]').remove();
-        if (!pageId) {
+        if (!pageId && !$('#currentLang').length) {
             selector.val(-4);
-        } else {
-            if (selectedOption !== undefined) {
-                selector.val(selectedOption);
-            }
+        } else if (selectedOption !== undefined) {
+            selector.val(selectedOption);
         }
         selector.show().next('.menu-info').hide();
         break;
@@ -103,9 +101,13 @@ function showTemplatesList() {
 $(function () {
     $('#pageCategory').hide();
 
-    var elements = [$('#header-title'), $('#url'), $('#nav-name')],
+    var elements = [$('#header-title'), $('#nav-name')],
         isNewPage = !$('#pageId').val(),
         selectedOpt = $('#pageCategory').val();
+
+    if(!$('#pageId').val() && !$('#url').val()){
+        elements.push($('#url'));
+    }
 
     $('#optimized').val($('#toggle-optimized').attr('checked') ? 1 : 0);
 
@@ -140,7 +142,24 @@ $(function () {
     }).on('blur', '#datepicker', function () {
         $('#publish-at').val($(this).val());
     }).on('change', '#external-link-switch', function(){
-        toggleExternalLink()
+        toggleExternalLink();
+    }).on('click', '#del-this-page', function() {
+      var pageId     = $('#pageId').val();
+      var websiteUrl = $('#website_url').val();
+
+      var isCategory = !!($(this).data('cid') == 0);
+      if(isCategory) {
+        $.getJSON(websiteUrl + 'backend/backend_page/checkforsubpages/pid/' + pageId, function(response) {
+          if(response.responseText.subpages) {
+            smoke.alert(response.responseText.message, function(e){}, {'classname':'warning'});
+            return false;
+          } else {
+            showDelConfirm();
+          }
+        });
+      } else {
+        showDelConfirm();
+      }
     });
 
     // if this is a page creation, register auto-populate
@@ -155,3 +174,32 @@ $(function () {
     }
     checkMenu();
 });
+
+//admin panel delete this page link
+function showDelConfirm() {
+  var pageId     = $('#pageId').val();
+  var websiteUrl = $('#website_url').val();
+  var currentLangUrl = $('.language-link').first().attr('href');
+  smoke.confirm('Are you sure you want to delete this page?', function(e) {
+    if(e) {
+      $.ajax({
+        url        : websiteUrl + 'backend/backend_page/delete/'+'id/'+pageId,
+        type       : 'DELETE',
+        dataType   : 'json',
+        beforeSend : function() {
+          smoke.signal('Removing page...', 30000);
+        },
+        success : function(response) {
+          hideSpinner();
+          if(!response.error) {
+            location.href = currentLangUrl;
+          }
+          else {
+            smoke.alert(response.responseText.body, {'classname':'error'});
+          }
+
+        }
+      });
+    }
+  }, {'classname':'error', 'ok':'Yes', 'cancel':'No'});
+}

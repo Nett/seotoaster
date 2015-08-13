@@ -16,6 +16,8 @@ class Application_Form_Container extends Application_Form_Secure {
 
 	protected $_lang          = '';
 
+	protected $_defaultLangId = '';
+
 	public function init() {
         parent::init();
         $this->setMethod(Zend_Form::METHOD_POST);
@@ -50,9 +52,9 @@ class Application_Form_Container extends Application_Form_Secure {
 			'id'    => 'container_id'
 		));
 
-		$this->addElement('hidden', 'lang', array(
-			'value' => $this->_lang,
-			'id'    => 'lang'
+		$this->addElement('hidden', 'defaultLangId', array(
+			'value' => $this->_defaultLangId,
+			'id'    => 'defaultLangId'
 		));
 
 		$this->setElementDecorators(array('ViewHelper', 'Errors'));
@@ -111,6 +113,16 @@ class Application_Form_Container extends Application_Form_Secure {
 
 	public function setPublished($published) {
 		$this->_published = $published;
+		return $this;
+	}
+
+	public function getDefaultLangId()
+	{
+		return $this->_defaultLangId;
+	}
+
+	public function setDefaultLangId($defaultLangId) {
+		$this->_defaultLangId = $defaultLangId;
 		return $this;
 	}
 

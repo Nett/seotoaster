@@ -23,10 +23,17 @@ class Application_Model_Mappers_ContainerMapper extends Application_Model_Mapper
 			'page_id'         => $container->getPageId(),
 			'published'       => $container->getPublished(),
 			'publishing_date' => $container->getPublishingDate(),
+			'default_lang_id' => $container->getDefaultLangId(),
             'lang'            => $container->getLang()
 		);
 		if(!$container->getId()) {
-			return $this->getDbTable()->insert($data);
+            $containerId = $this->getDbTable()->insert($data);
+            $container->setId($containerId);
+
+            if ((int)$container->getDefaultLangId() === 0) {
+                $container->setDefaultLangId($containerId);
+            }
+            return $this->save($container);
 		}
 		else {
 			return $this->getDbTable()->update(
@@ -76,8 +83,13 @@ class Application_Model_Mappers_ContainerMapper extends Application_Model_Mapper
 	}
 
 	public function delete(Application_Model_Models_Container $container) {
-		$where = $this->getDbTable()->getAdapter()->quoteInto("id = ?", $container->getId());
-		$this->getDbTable()->delete($where);
+        $where = $this->getDbTable()->getAdapter()->quoteInto("id = ?", $container->getId());
+        if ($container->getDefaultLangId() == $container->getId()) {
+            $where .= ' OR '.$this->getDbTable()->getAdapter()
+                    ->quoteInto('default_lang_id = ?', $container->getDefaultLangId());
+        }
+
+        $this->getDbTable()->delete($where);
 		$container->notifyObservers();
 	}
 
@@ -169,6 +181,15 @@ class Application_Model_Mappers_ContainerMapper extends Application_Model_Mapper
            return $pageId;
         }
         return $summaryArray;
+    }
+
+    public function getCurrentContainerLocalData($defaultLangId)
+    {
+        $query = $this->getDbTable()->getAdapter()->select()
+            ->from($this->getDbTable()->info('name'), array('lang', 'id'))
+            ->where('default_lang_id = ?', $defaultLangId);
+
+        return $this->getDbTable()->getAdapter()->fetchAssoc($query);
     }
         
 }

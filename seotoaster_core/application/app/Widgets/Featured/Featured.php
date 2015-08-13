@@ -162,7 +162,22 @@ class Widgets_Featured_Featured extends Widgets_Abstract
             }
             return '';
         }
-        if (($page = Application_Model_Mappers_PageMapper::getInstance()->find(intval($params[0]))) === null) {
+        $page  = Application_Model_Mappers_PageMapper::getInstance()->find(intval($params[0]));
+
+        if($page->getDefaultLangId() !== intval($params[0])) {
+            $pages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData(
+                $page->getDefaultLangId()
+            );
+            $lang  = Zend_Locale::getLocaleToTerritory(isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : Tools_Localization_Tools::getLangDefault());
+            if(isset($pages[$lang])) {
+                $pageId = $pages[$lang]['id'];
+                $page = Application_Model_Mappers_PageMapper::getInstance()->find($pageId);
+            } else {
+                $page = null;
+            }
+        }
+
+        if ($page === null) {
             if (Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_CONTENT)) {
                 throw new Exceptions_SeotoasterWidgetException(
                     $this->_translator->translate('Page with such id is not found')

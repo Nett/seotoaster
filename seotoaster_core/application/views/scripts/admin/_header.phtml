@@ -4,16 +4,21 @@
 
 <div class="closebutton">
 	<!-- Local section start -->
-	<?php if (!empty($this->localSection)):
-		foreach ($this->localSection as $code => $val): ?>
-			<a <?php if ($val['active']) echo ' class="active"'; ?>
+	<?php if (!empty($this->langSection)):
+        $website = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
+        echo '<div class="btn-set">'; ?>
+		<?php foreach ($this->langSection as $code => $val): ?>
+			<a class="language-link mr5px <?php if (!$val['active']) echo 'fade'; ?>"
 				href="<?php echo $val['href']; ?>"
-				title="<?php echo $val['name']; ?>">
-				<?php echo $val['action']; ?>
-				<img class="align-baseline" border="0" src="/system/images/flags/<?php echo $code; ?>.png">
+				title="<?php echo $val['title']; ?>">
+				<img border="0" src="<?php echo $website->getUrl(); ?>system/images/flags/<?php echo $code; ?>.png" width="18"
+                    alt="<?php echo $val['title']; ?>">
 			</a>
 		<?php endforeach;
-	endif; ?>
+        echo '</div>'; ?>
+	<?php elseif (Tools_Localization_Tools::getActiveLanguagesList() && isset($this->langSection)): ?>
+        <span class="warning small"><?php echo $this->translate('Apply the changes to add translation');?></span>
+	<?php endif; ?>
 	<!-- Local section end -->
 
 	<?php if(isset($this->helpSection)){

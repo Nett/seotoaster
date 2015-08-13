@@ -41,7 +41,6 @@ $(function() {
         $tabs.find('.netcontent-widget-list').css({
             'height' : height - tabNavHeight - tabNetContentButton - 12
         });
-
     });
 
     $('#btn-submit').click(function(){
@@ -50,12 +49,14 @@ $(function() {
 
 	$('#frm_content').submit(function() {
 		var elements = {
-			content       : $(this).find('#content').val(),
-			containerType : $(this).find('#container_type').val(),
-			containerName : $(this).find('#container_name').val(),
-			pageId        : $(this).find('#page_id').val(),
-			containerId   : $(this).find('#container_id').val(),
-			published     : ($('#published').prop('checked')) ? 1 : 0,
+			content       : $('#content').val(),
+			containerType : $('#container_type').val(),
+			containerName : $('#container_name').val(),
+			pageId        : $('#page_id').val(),
+			containerId   : $('#container_id').val(),
+            defaultLangId : $('#defaultLangId').val(),
+            currentReload : $('#currentReload').prop('checked') ? 1 : 0,
+			published     : $('#published').prop('checked') ? 1 : 0,
 			publishOn     : $('#datepicker').val(),
             secureToken   : $(this).find('.secureToken').val()
 		};
@@ -65,9 +66,14 @@ $(function() {
 			dataType   : 'json',
 			data       : elements,
 			beforeSend : showSpinner(),
-			success : function() {
+			success : function(response) {
 				localStorage.removeItem(generateStorageKey());
-				top.location.reload();
+                if(typeof response.responseText.redirectTo !== 'undefined' && response.responseText.redirectTo) {
+                    location.href = response.responseText.redirectTo;
+                    return;
+                } else {
+				    top.location.reload();
+                }
 			},
 			error: function(response) {
 				showMessage(response.responseText, true);

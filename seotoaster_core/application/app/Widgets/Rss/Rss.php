@@ -17,7 +17,8 @@ class Widgets_Rss_Rss extends Widgets_Abstract {
 			'scriptPath' => dirname(__FILE__) . '/views'
 		));
 		$website = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
-		$this->_view->websiteUrl = $website->getUrl();
+        $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] . '/' : '';
+        $this->_view->websiteUrl = $website->getUrl() . $lang;
 	}
 
 	protected function _load() {

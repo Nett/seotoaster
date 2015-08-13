@@ -1,14 +1,50 @@
 <div class="seotoaster container">
-	<?php echo $this->partial('admin' . DIRECTORY_SEPARATOR . '_header.phtml', array('innerHeaderHtml' => 'Edit header', 'helpSection' => $this->helpSection)); ?>
+	<?php echo $this->partial(
+        'admin' . DIRECTORY_SEPARATOR . '_header.phtml',
+        array(
+            'innerHeaderHtml' => 'Edit header',
+            'helpSection'     => $this->helpSection,
+            'langSection'     => $this->langSection
+        )
+    ); ?>
     <form id="frm_content" action="<?php echo $this->url(); ?>" class="<?php echo $this->contentForm->getAttrib('class');?>" method="post" enctype="application/x-www-form-urlencoded">
-        <dl class="zend_form">
-            <?php echo $this->contentForm->getElement('content'); ?>
-            <?php echo $this->contentForm->getElement('submit'); ?>
-            <?php echo $this->contentForm->getElement('containerType'); ?>
-            <?php echo $this->contentForm->getElement('containerName'); ?>
-            <?php echo $this->contentForm->getElement('pageId'); ?>
-            <?php echo $this->contentForm->getElement('containerId'); ?>
-            <input type="hidden" name="secureToken" class="secureToken" value="<?php echo $this->secureToken;?>" />
-        </dl>
+        <?php echo $this->contentForm->getElement('content'); ?>
+        <?php echo $this->contentForm->getElement('submit'); ?>
+        <?php if ($this->localizationActive): ?>
+            <input id="currentReload" class="hidden" type="checkbox" name="currentReload"/>
+            <button id="apply-changes" class="btn outline-bg ticon-checkmark2 mr-grid" type="submit">Apply changes</button>
+        <?php endif; ?>
+        <?php echo $this->contentForm->getElement('containerType'); ?>
+        <?php echo $this->contentForm->getElement('containerName'); ?>
+        <?php echo $this->contentForm->getElement('pageId'); ?>
+        <?php echo $this->contentForm->getElement('containerId'); ?>
+        <?php echo $this->contentForm->getElement('defaultLangId'); ?>
+        <input type="hidden" name="secureToken" class="secureToken" value="<?php echo $this->secureToken;?>" />
     </form>
 </div>
+
+<script type="text/javascript">
+	$(function() {
+        var $form = $('#frm_content');
+        var startData = $form.serialize();
+        $(document).on('click', '#apply-changes', function(){
+            $('#currentReload').prop('checked', true);
+            $form.toggleClass('_reload _reload-screen');
+        }).on('click', '.language-link', function(e){
+            var href = $(this).attr('href');
+            if(startData !== $form.serialize()){
+                e.preventDefault();
+                <?php
+                    $lang = $this->currentLang ? $this->currentLang : Tools_Localization_Tools::getLangDefault();
+                    $lang = $this->localizationActive[$lang];
+                 ?>
+                showConfirm('<?php echo $this->translate('Save changes to the ' . $lang . ' language?');?>', function(){
+                    $form.removeClass('_reload').submit();
+                    location.href = href;
+                }, function(){
+                    location.href = href;
+                });
+            }
+        });
+    });
+</script>

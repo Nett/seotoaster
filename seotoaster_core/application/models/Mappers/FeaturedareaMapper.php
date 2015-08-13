@@ -137,8 +137,9 @@ class Application_Model_Mappers_FeaturedareaMapper extends Application_Model_Map
         return $entries;
     }
 
-    private function _findFarowPages($faModel)
+    private function _findFarowPages($faModel, $lang = null)
     {
+        $lang = Zend_Locale::getLocaleToTerritory(isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : Tools_Localization_Tools::getLangDefault());
         $faPageDbTable = new Application_Model_DbTable_PageFeaturedarea();
         $pageIds = $faPageDbTable->getAdapter()->fetchCol(
             $faPageDbTable->select()->where('fa_id = ?', $faModel->getId())->order('order ASC')
@@ -149,7 +150,7 @@ class Application_Model_Mappers_FeaturedareaMapper extends Application_Model_Map
         if (!empty($pageIds)) {
             $pageIds = implode(',', $pageIds);
             $faPages = Application_Model_Mappers_PageMapper::getInstance()
-                ->fetchAll('id IN ('.$pageIds.") AND system = '0'", array('FIELD(id, '.$pageIds.')'));
+                ->fetchAll('default_lang_id IN ('.$pageIds.") AND system = '0' AND lang = '" . $lang . "'", array('FIELD(id, '.$pageIds.')'));
         }
 
         return $faPages;

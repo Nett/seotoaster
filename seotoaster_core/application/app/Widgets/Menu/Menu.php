@@ -45,7 +45,8 @@ class Widgets_Menu_Menu extends Widgets_Abstract {
             }
         }
         $rendererName = '_render' . ucfirst($menuType) . 'Menu';
-        $this->_view->websiteUrl = $website->getUrl();
+        $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] . '/' : '';
+        $this->_view->websiteUrl = $website->getUrl() . $lang;
         if (method_exists($this, $rendererName)) {
             return $this->$rendererName();
         }
@@ -152,12 +153,13 @@ class Widgets_Menu_Menu extends Widgets_Abstract {
                 $dictionary['$page:category:name'] = $parentCategoryPage['h1'];
             }
             $dictionary['$page:target_blank'] = '';
+            $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"] . '/' : '';
             foreach ($page as $prop => $item) {
                 if (is_array($item)) {
                     continue;
                 }
                 if ($prop === 'url') {
-                    $item = $website->getUrl() . $item;
+                    $item = $website->getUrl() . $lang . $item;
                     if ($page['external_link_status'] === '1'){
                         $item = $page['external_link'];
                         $dictionary['$page:target_blank'] = 'target=_blank';

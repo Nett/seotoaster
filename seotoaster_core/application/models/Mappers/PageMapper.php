@@ -64,8 +64,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
         if ($page->getId()) {
             $this->getDbTable()->update($data, array('id = ?' => $page->getId()));
-        }
-        else {
+        } else {
             $pageId = $this->getDbTable()->insert($data);
             $page->setId($pageId);
 
@@ -237,13 +236,16 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
      * @param  string $pageUrl
      * @return mixed
      */
-    public function findByUrl($pageUrl)
+    public function findByUrl($pageUrl, $pageLang = null)
     {
         if (!$pageUrl) {
             $pageUrl = Helpers_Action_Website::DEFAULT_PAGE;
         }
-
-        $entry = $this->getDbTable()->findByUrl($pageUrl);
+        if (!$pageLang) {
+            $pageLang = Tools_Localization_Tools::getLangDefault();
+        }
+        $pageLang = Zend_Locale::getLocaleToTerritory($pageLang);
+        $entry = $this->getDbTable()->findByUrl($pageUrl, $pageLang);
 
         if (!$entry) {
             return null;
@@ -271,13 +273,22 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
     public function findByNavName($navName)
     {
+        $lang  = Zend_Locale::getLocaleToTerritory(isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : Tools_Localization_Tools::getLangDefault());
         $where = $this->getDbTable()->getAdapter()->quoteInto('nav_name = ?', $navName);
+        $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto('lang = ?', $lang);
         return $this->_findWhere($where);
     }
 
     public function findByParentId($parentId, $draft = false)
     {
+        $lang = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
+        if(isset($_COOKIE["screenLang"])) {
+            $lang = $_COOKIE["screenLang"];
+        } else if(isset($_COOKIE["localization"])){
+            $lang = Zend_Locale::getLocaleToTerritory($_COOKIE["localization"]);
+        }
         $where = $this->getDbTable()->getAdapter()->quoteInto('parent_id = ?', $parentId);
+        $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto('lang = ?', $lang);
         if ($draft) {
             $where .= ' OR ' . $this->getDbTable()->getAdapter()->quoteInto('draft = ?', '1');
         }
@@ -286,9 +297,11 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
     public function fetchMainCategories()
     {
+        $lang  = Zend_Locale::getLocaleToTerritory(isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : Tools_Localization_Tools::getLangDefault());
         $where = $this->getDbTable()->getAdapter()->quoteInto('parent_id = ?', '0');
         $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto('draft = ?', '0');
         $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto('show_in_menu = ?', '1');
+        $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto('lang = ?', $lang);
 
         return $this->fetchAll($where);
     }
@@ -324,7 +337,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
     public function delete(Application_Model_Models_Page $page)
     {
         $where  = $this->getDbTable()->getAdapter()->quoteInto('id = ?', $page->getId());
-        if ($page->getId() === $page->getDefaultLangId()) {
+        if ($page->getId() == $page->getDefaultLangId()) {
             $where .= ' OR '.$this->getDbTable()->getAdapter()
                     ->quoteInto('default_lang_id = ?', $page->getDefaultLangId());
         }
@@ -488,6 +501,34 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
     {
         $where = $this->getDbTable()->getAdapter()->quoteInto("parent_id =?", $parentId);
         return $this->getDbTable()->update(array('draft'=>0, 'system'=>0), $where);
+    }
+
+    public function updateLangPages($defaultLangId, $newData)
+    {
+        $dataUpdate = array(
+            'template_id'          => $newData->getTemplateId(),
+            'show_in_menu'         => $newData->getShowInMenu(),
+            'order'                => $newData->getOrder(),
+            'silo_id'              => $newData->getSiloId(),
+            'targeted_key_phrase'  => $newData->getTargetedKeyPhrase(),
+            'system'               => intval($newData->getSystem()),
+            'draft'                => intval($newData->getDraft()),
+            'news'                 => intval($newData->getNews()),
+            'publish_at'           => (!$newData->getPublishAt()) ? null : date('Y-m-d', strtotime($newData->getPublishAt())),
+            'external_link_status' => $newData->getExternalLinkStatus(),
+            'external_link'        => $newData->getExternalLink()
+        );
+        if($newData->getParentId() <= 0){
+            $dataUpdate['parent_id'] = $newData->getParentId();
+        }
+        $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id =?", $defaultLangId);
+        return $this->getDbTable()->update($dataUpdate, $where);
+    }
+
+    public function updateParentIdPages($parentId, $newParentId)
+    {
+        $where = $this->getDbTable()->getAdapter()->quoteInto("parent_id =?", $parentId);
+        return $this->getDbTable()->update(array('parent_id'=>$newParentId), $where);
     }
 
     public function getCurrentPageLocalData($defaultLangId)

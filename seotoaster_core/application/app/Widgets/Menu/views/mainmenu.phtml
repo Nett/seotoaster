@@ -1,6 +1,9 @@
 <?php if(!empty($this->pages)): ?>
 <ul class="main_menu">
-    <?php $i = 1; ?>
+    <?php
+        $i = 1;
+        $lang = Tools_Localization_Tools::getLangDefault();
+    ?>
     <?php foreach ($this->pages as $key => $page): ?>
         <li class="category cat-<?php echo $i++; ?>">
             <?php if($page['external_link_status'] === '1'):?>
