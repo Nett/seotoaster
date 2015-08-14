@@ -110,6 +110,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
                     'protected',
                     'system',
                     'news',
+                    'preview_image',
                     'default_lang_id',
                     'lang'
                 )
