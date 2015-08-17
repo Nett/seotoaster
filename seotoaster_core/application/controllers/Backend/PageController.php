@@ -296,8 +296,19 @@ class Backend_PageController extends Zend_Controller_Action {
                     $mapper->publishChildPages($params['pageId']);
                 }
 
-                if($page->getLang() === Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault())){
+                $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
+                if($page->getLang() === $langDefault){
                     $mapper->updateLangPages($params['pageId'], $page);
+
+                    $currentPages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($params['pageId']);
+                    $subPages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($page->getParentId());
+                    if (sizeof($currentPages) > 1) {
+                        foreach ($currentPages as $lang => $value) {
+                            if ($lang !== $langDefault) {
+                                $mapper->updateParentIdPages($value['id'], $subPages[$lang]['id']);
+                            }
+                        }
+                    }
                 }
                 $page = $mapper->save($page);
 
@@ -438,11 +449,11 @@ class Backend_PageController extends Zend_Controller_Action {
                     $orderedList = array_unique(Zend_Json::decode($this->getRequest()->getParam('ordered'), Zend_Json::TYPE_ARRAY));
                     unset ($orderedList[array_search(Application_Model_Models_Page::IDCATEGORY_DEFAULT, $orderedList)]);
                     if(is_array($orderedList)) {
-                        $updatePageOrderSql = "UPDATE ".$pageDbTable->info('name')." SET `order` = :order WHERE `id` = :id ";
+                        $updatePageOrderSql = "UPDATE ".$pageDbTable->info('name')." SET `order` = :order WHERE `default_lang_id` = :default_lang_id ";
                         $stmt = $pageDbTable->getAdapter()->prepare($updatePageOrderSql);
                         foreach ($orderedList as $key => $pageId) {
                             $stmt->bindParam('order', $key);
-                            $stmt->bindParam('id', $pageId);
+                            $stmt->bindParam('default_lang_id', $pageId);
                             $stmt->execute();
                         }
                         $this->_helper->cache->clean(false, false, 'Widgets_Menu_Menu');

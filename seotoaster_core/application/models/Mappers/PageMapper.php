@@ -525,9 +525,9 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $this->getDbTable()->update($dataUpdate, $where);
     }
 
-    public function updateParentIdPages($parentId, $newParentId)
+    public function updateParentIdPages($id, $newParentId)
     {
-        $where = $this->getDbTable()->getAdapter()->quoteInto("parent_id =?", $parentId);
+        $where = $this->getDbTable()->getAdapter()->quoteInto("id =?", $id);
         return $this->getDbTable()->update(array('parent_id'=>$newParentId), $where);
     }
 
