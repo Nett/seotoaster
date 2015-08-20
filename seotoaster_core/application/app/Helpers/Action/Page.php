@@ -56,13 +56,15 @@ class Helpers_Action_Page extends Zend_Controller_Action_Helper_Abstract {
 
 	public function doCanonicalRedirect($pageUrl) {
 		$this->_redirector->setCode(301);
-              	
+
+        $lang = isset($_COOKIE["localization"]) ? $_COOKIE["localization"].'/' : '';
+
         if(Tools_System_Tools::getUrlHost($_SERVER['HTTP_HOST']) != Tools_System_Tools::getUrlHost($this->_website->getUrl())) {
-			$this->_redirector->gotoUrl($this->_website->getUrl() . $pageUrl);
+			$this->_redirector->gotoUrl($this->_website->getUrl() . $lang . $pageUrl);
 		}
 
 		if(in_array($pageUrl, $this->_canonicMap)) {
-			$this->_redirector->gotoUrl($this->_website->getUrl());
+			$this->_redirector->gotoUrl($this->_website->getUrl() . $lang);
 		}
 	}
 
@@ -98,6 +100,18 @@ class Helpers_Action_Page extends Zend_Controller_Action_Helper_Abstract {
 
 	public function clean($pageUrl) {
         $filter = new Zend_Filter_PregReplace(array('match' => '/\.html$/', 'replace' => ''));
+		return $filter->filter($pageUrl);
+	}
+
+	public function validatePageUrl($pageUrl) {
+        $langDefault = Tools_Localization_Tools::getLangDefault();
+
+        $filter = new Zend_Filter();
+        $filter->addFilter(new Zend_Filter_PregReplace(array('match' => '/'.$langDefault.'\//', 'replace' => '')));
+
+        if($langDefault === 'us'){
+            $filter->addFilter(new Zend_Filter_PregReplace(array('match' => '/en\//', 'replace' => '')));
+        }
 		return $filter->filter($pageUrl);
 	}
 

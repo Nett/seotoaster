@@ -20,7 +20,8 @@ class Application_Model_Mappers_RedirectMapper extends Application_Model_Mappers
 			'from_url'    => $redirect->getFromUrl(),
 			'to_url'      => $redirect->getToUrl(),
 			'domain_to'   => $redirect->getDomainTo(),
-			'domain_from' => $redirect->getDomainFrom()
+			'domain_from' => $redirect->getDomainFrom(),
+			'lang'        => $redirect->getLang()
 		);
 		if(null === ($id = $redirect->getId())) {
 			unset($data['id']);
@@ -60,7 +61,8 @@ class Application_Model_Mappers_RedirectMapper extends Application_Model_Mappers
 	public function deleteByRedirect($fromUrl, $toUrl) {
 		$fromUrl = $this->getDbTable()->getAdapter()->quoteInto("from_url = ?", $fromUrl);
 		$toUrl   = $this->getDbTable()->getAdapter()->quoteInto("to_url = ?", $toUrl);
-		$where = sprintf("%s AND %s", $fromUrl, $toUrl);
+		$lang   = $this->getDbTable()->getAdapter()->quoteInto("lang = ?", $_COOKIE['screenLang']);
+		$where = sprintf("%s AND %s AND %s", $fromUrl, $toUrl, $lang);
 		return $this->getDbTable()->delete($where);
 	}
 

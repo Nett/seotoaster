@@ -348,10 +348,11 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $deleteResult;
     }
 
-    public function fetchIdUrlPairs()
+    public function fetchIdUrlPairs($lang)
     {
         $select = $this->getDbTable()->select(Zend_Db_Table::SELECT_WITHOUT_FROM_PART)
                 ->from($this->getDbTable()->info('name'), array('id', 'url'))
+                ->where('lang = ?', $lang)
                 ->order('url');
 
         return $this->getDbTable()->getAdapter()->fetchPairs($select);

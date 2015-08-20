@@ -42,20 +42,21 @@ $(function() {
 				success: function(response) {
 					hideSpinner();
 					showMessage(response.responseText, response.error);
-					if(typeof callback != 'undefined') {
+					if(typeof callback !== 'undefined') {
 						eval(callback + '()');
 					}
 				}
 			});
 		});
-	})
+	});
 });
 
 //callback function for the ajax forms
 function reloadRedirectsList() {
+    var currentLang = $('#current_lang').val();
 	$('input:text').val('http://');
 	showSpinner();
-	$.getJSON($('#website_url').val() + 'backend/backend_seo/loadredirectslist/', function(response) {
+	$.getJSON($('#website_url').val() + 'backend/backend_seo/loadredirectslist/lang/' + currentLang, function(response) {
 		hideSpinner();
 		$('#redirects-list').html(response.redirectsList);
 		checkboxRadioStyle();

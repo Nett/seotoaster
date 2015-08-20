@@ -1,5 +1,12 @@
 <div class="seotoaster container">
-	<?php echo $this->partial('admin' . DIRECTORY_SEPARATOR . '_header.phtml', array('headerText' => 'Manage Page Rank Sculpting', 'helpSection' => $this->helpSection)); ?>
+	<?php echo $this->partial(
+        'admin' . DIRECTORY_SEPARATOR . '_header.phtml',
+        array(
+            'headerText'  => 'Manage Page Rank Sculpting',
+            'helpSection' => $this->helpSection,
+            'langSection' => $this->langSection
+        )
+    ); ?>
 	<div class="content-footer">
 		<form id="frm-sculpting" method="post" action="<?php echo $this->url(); ?>" class="_fajax grid_12 mb15px form-inline" data-callback="sculptingCallback">
             <?php echo $this->siloForm->getElement('name'); ?>

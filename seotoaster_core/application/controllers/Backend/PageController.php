@@ -190,9 +190,9 @@ class Backend_PageController extends Zend_Controller_Action {
                 }
 
                 //saving old data for seo routine
-                $this->_helper->session->oldPageUrl   = $page->getUrl();
-                $this->_helper->session->oldPageH1    = $page->getH1();
-                $this->_helper->session->oldPageDraft = $page->getDraft();
+                $this->_helper->session->oldPageUrl   = $page->getId() ? $page->getUrl() : '';
+                $this->_helper->session->oldPageH1    = $page->getId() ? $page->getH1() : '';
+                $this->_helper->session->oldPageDraft = $page->getId() ? $page->getDraft() : '';
 
                 if(!$optimized) {
                     $page->registerObserver(new Tools_Seo_Watchdog());
