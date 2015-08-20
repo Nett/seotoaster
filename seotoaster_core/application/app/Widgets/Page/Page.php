@@ -46,6 +46,10 @@ class Widgets_Page_Page extends Widgets_Abstract {
 		return $this->_toasterOptions['id'];
 	}
 
+	private function _generateMainIdOption() {
+		return $this->_toasterOptions['defaultLangId'];
+	}
+
 
 	private function _generateTeaserOption() {
 		return $this->_toasterOptions['teaserText'];
@@ -121,6 +125,10 @@ class Widgets_Page_Page extends Widgets_Abstract {
 			array(
 				'alias'   => $translator->translate('Current page id'),
 				'option' => 'page:id'
+			),
+			array(
+				'alias'   => $translator->translate('Default lang page id'),
+				'option' => 'page:mainid'
 			),
             array(
                 'alias'   => $translator->translate('Current page url'),

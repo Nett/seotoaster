@@ -230,8 +230,8 @@ $(function(){
     //publishPages();
     checkboxRadioStyle();
     $(document).on('mouseup', '.seotoaster', function (e) {
-        var container = $(".show-left, .show-right");
-        if (container.has(e.target).length === 0){
+        var $container = $(".show-left, .show-right");
+        if (!$container.has(e.target).length && !$container.is(e.target)){
             $('.show-left').hide("slide", { direction: "left"});
             $('.show-right').hide("slide", { direction: "right"});
             //return false;
