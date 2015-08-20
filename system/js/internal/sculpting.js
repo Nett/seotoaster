@@ -25,7 +25,7 @@ $(function () {
         if ($(this).prop('checked')) {
             actUrl += 'backend/backend_seo/silocat/act/add/';
         } else {
-            actUrl += 'backend/backend_seo/silocat/act/remove/'
+            actUrl += 'backend/backend_seo/silocat/act/remove/';
         }
         $.post(
             actUrl,
@@ -44,7 +44,8 @@ sculptingCallback = function() {
 
 var loadSculptingData = function () {
     showSpinner();
-    $.getJSON($('#website_url').val() + 'backend/backend_seo/loadsculptingdata', function (response) {
+    var currentLang = $('#current_lang').val();
+    $.getJSON($('#website_url').val() + 'backend/backend_seo/loadsculptingdata/lang/' + currentLang, function (response) {
         hideSpinner();
         $('#sculpting-list').html(response.sculptingList);
         checkboxRadioStyle();

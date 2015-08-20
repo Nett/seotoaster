@@ -164,7 +164,7 @@ class Widgets_Featured_Featured extends Widgets_Abstract
         }
         $page  = Application_Model_Mappers_PageMapper::getInstance()->find(intval($params[0]));
 
-        if($page->getDefaultLangId() !== intval($params[0])) {
+        if($page !== null && $page->getDefaultLangId() !== intval($params[0])) {
             $pages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData(
                 $page->getDefaultLangId()
             );

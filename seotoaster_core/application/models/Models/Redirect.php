@@ -17,6 +17,8 @@ class Application_Model_Models_Redirect extends Application_Model_Models_Abstrac
 
 	protected $_domainFrom = '';
 
+	protected $_lang       = '';
+
 	public function getPageId() {
 		return $this->_pageId;
 	}
@@ -59,6 +61,15 @@ class Application_Model_Models_Redirect extends Application_Model_Models_Abstrac
 
 	public function setDomainFrom($domainFrom) {
 		$this->_domainFrom = $domainFrom;
+		return $this;
+	}
+
+	public function getLang() {
+		return $this->_lang;
+	}
+
+	public function setLang($lang) {
+		$this->_lang = $lang;
 		return $this;
 	}
 }

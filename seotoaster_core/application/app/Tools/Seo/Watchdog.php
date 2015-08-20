@@ -136,12 +136,19 @@ class Tools_Seo_Watchdog implements Interfaces_Observer {
 
 		$mapper->deleteByRedirect($this->_object->getUrl(), $sessionHelper->oldPageUrl);
 
+        $pageLangPrefix = '';
+        if($this->_object->getLang() !== Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault())){
+            $locale         = new Zend_Locale($this->_object->getLang());
+            $pageLangPrefix = $locale->getLanguage() . '/';
+        }
+
 		$redirect = new Application_Model_Models_Redirect();
-		$redirect->setFromUrl($sessionHelper->oldPageUrl);
-		$redirect->setToUrl($this->_object->getUrl());
+		$redirect->setFromUrl($pageLangPrefix . $sessionHelper->oldPageUrl);
+		$redirect->setToUrl($pageLangPrefix . $this->_object->getUrl());
 		$redirect->setPageId($this->_object->getId());
 		$redirect->setDomainFrom($websiteHelper->getUrl());
 		$redirect->setDomainTo($websiteHelper->getUrl());
+		$redirect->setLang($this->_object->getLang());
 		$mapper->save($redirect);
 
 		$cacheHelper->clean('toaster_301redirects', '301redirects');

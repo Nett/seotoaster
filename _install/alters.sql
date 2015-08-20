@@ -100,8 +100,20 @@ ALTER TABLE `page` ADD COLUMN `external_link` TEXT COLLATE utf8_unicode_ci DEFAU
 -- version: 2.4.0
 -- update version
 
+-- 05.08.2015
+-- version: 2.4.1
+-- Add page type
+ALTER TABLE `page` ADD COLUMN `page_type` TINYINT(3) unsigned NOT NULL DEFAULT '1';
+CREATE TABLE IF NOT EXISTS `page_types` (
+  `page_type_id` TINYINT(3) unsigned NOT NULL,
+  `page_type_name` VARCHAR(60),
+  PRIMARY KEY (`page_type_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+INSERT INTO `page_types` (`page_type_id`, `page_type_name`)
+VALUES ('1', 'page');
+
 -- These alters are always the latest and updated version of the database
-UPDATE `config` SET `value`='2.4.1' WHERE `name`='version';
+UPDATE `config` SET `value`='2.4.2' WHERE `name`='version';
 SELECT value FROM `config` WHERE name = 'version';
 
 -- 28.04.2015
@@ -111,6 +123,8 @@ ALTER TABLE `page` ADD `default_lang_id` int(11) NOT NULL DEFAULT '0' AFTER `id`
 ALTER TABLE `page` ADD `lang` char(5) COLLATE 'utf8_unicode_ci' NULL AFTER `default_lang_id`;
 ALTER TABLE `container` ADD `default_lang_id` int(11) NOT NULL DEFAULT '0' AFTER `container_type`;
 ALTER TABLE `container` ADD `lang` char(5) COLLATE 'utf8_unicode_ci' NULL AFTER `default_lang_id`;
+ALTER TABLE `redirect` ADD `lang` char(5) COLLATE 'utf8_unicode_ci' NULL AFTER `domain_from`;
+ALTER TABLE `deeplink` ADD `lang` char(5) COLLATE 'utf8_unicode_ci' NULL AFTER `nofollow`;
 UPDATE page SET default_lang_id=id WHERE default_lang_id='0';
 UPDATE page AS P JOIN container AS C ON P.id = C.page_id SET C.lang=P.lang;
 

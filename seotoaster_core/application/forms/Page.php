@@ -38,6 +38,8 @@ class Application_Form_Page extends Application_Form_Secure {
 
     protected $_externalLink = '';
 
+    protected $_lang = '';
+
 	public function init() {
         parent::init();
         $this->setMethod(Zend_Form::METHOD_POST);
@@ -195,6 +197,14 @@ class Application_Form_Page extends Application_Form_Secure {
             ))
         );
 
+        $this->addElement(
+            new Zend_Form_Element_Hidden(array(
+                'id'    => 'pageLang',
+                'name'  => 'pageLang',
+                'value' => $this->_lang
+            ))
+        );
+
 		$this->addElement(new Zend_Form_Element_Button(array(
 			'name'  => 'updatePage',
 			'id'    => 'update-page',
@@ -233,6 +243,17 @@ class Application_Form_Page extends Application_Form_Secure {
 	public function setHeaderTitle($headerTitle) {
 		$this->_headerTitle = $headerTitle;
 		$this->getElement('headerTitle')->setValue($headerTitle);
+		return $this;
+	}
+
+	public function getLang() {
+		return $this->_lang;
+	}
+
+	public function setLang($lang) {
+        $locale= new Zend_Locale($lang);
+		$this->_lang = $locale->getLanguage();
+		$this->getElement('pageLang')->setValue($this->_lang);
 		return $this;
 	}
 

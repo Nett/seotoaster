@@ -25,6 +25,8 @@ class IndexController extends Zend_Controller_Action {
 		// Getting requested url. If url is not specified - get index.html
 		$pageUrl = filter_var($this->getRequest()->getParam('page', Helpers_Action_Website::DEFAULT_PAGE), FILTER_SANITIZE_STRING);
 
+        $pageUrl = $this->_helper->page->validatePageUrl($pageUrl);
+
 		// Trying to do canonical redirects
 		$this->_helper->page->doCanonicalRedirect($pageUrl);
 

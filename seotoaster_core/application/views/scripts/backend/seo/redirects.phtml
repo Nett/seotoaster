@@ -1,5 +1,12 @@
 <div class="seotoaster container">
-	<?php echo $this->partial('admin' . DIRECTORY_SEPARATOR . '_header.phtml', array('headerText' => 'Add / Edit 301 redirect', 'helpSection' => $this->helpSection)); ?>
+	<?php echo $this->partial(
+        'admin' . DIRECTORY_SEPARATOR . '_header.phtml',
+        array(
+            'headerText'  => 'Add / Edit 301 redirect',
+            'helpSection' => $this->helpSection,
+            'langSection' => $this->langSection
+        )
+    ); ?>
 	<div class="content-footer">
 		<form id="frm-redirects" class="_fajax grid_12 mb15px form-inline" action="<?php echo $this->url(); ?>" method="post" data-callback="reloadRedirectsList">
 			<div class="grid_5 alpha">

@@ -39,8 +39,11 @@ class Backend_SeoController extends Zend_Controller_Action {
             ->addActionContext('sitemap', 'xml')
             ->initContext();
 
-		$this->_translator      = Zend_Registry::get('Zend_Translate');
-		$this->view->websiteUrl = $this->_helper->website->getUrl();
+		$currentLang             = $this->getRequest()->getParam('lang');
+		$this->_translator       = Zend_Registry::get('Zend_Translate');
+		$this->view->websiteUrl  = $this->_helper->website->getUrl();
+		$this->view->currentLang = !empty($currentLang) ? $currentLang : Tools_Localization_Tools::getLangDefault();
+        $this->_addlangSection($this->view->currentLang);
 	}
 
 	public function robotsAction() {
@@ -73,7 +76,8 @@ class Backend_SeoController extends Zend_Controller_Action {
 		$pageMapper     = Application_Model_Mappers_PageMapper::getInstance();
 		$redirectMapper = Application_Model_Mappers_RedirectMapper::getInstance();
 
-		$redirectForm->setToasterPages($pageMapper->fetchIdUrlPairs());
+        $lang = Zend_Locale::getLocaleToTerritory($this->getRequest()->getParam('lang') ? $this->getRequest()->getParam('lang') : Tools_Localization_Tools::getLangDefault());
+		$redirectForm->setToasterPages($pageMapper->fetchIdUrlPairs($lang));
 		$redirectForm->setDefault('fromUrl', 'http://');
 
 		if ($this->getRequest()->isPost()) {
@@ -117,6 +121,7 @@ class Backend_SeoController extends Zend_Controller_Action {
 					$redirect->setToUrl(Tools_System_Tools::getUrlPath($data['toUrl']));
 					$redirect->setPageId(null);
 				}
+                $redirect->setLang($lang);
 				$redirectMapper->save($redirect);
 				$this->_helper->cache->clean('toaster_301redirects', '301redirects');
 				$this->_helper->response->success('Redirect saved');
@@ -133,7 +138,13 @@ class Backend_SeoController extends Zend_Controller_Action {
 	}
 
 	public function loadredirectslistAction() {
-		$redirects      = Application_Model_Mappers_RedirectMapper::getInstance()->fetchAll(null, array('id'));
+        if($lang = $this->getRequest()->getParam('lang')){
+            $lang = Zend_Locale::getLocaleToTerritory($this->getRequest()->getParam('lang'));
+        }
+		$redirects      = Application_Model_Mappers_RedirectMapper::getInstance()->fetchAll(
+            "lang = '" . $lang . "'",
+            array('id')
+        );
 		$this->view->redirects = array_reverse($redirects);
 		$this->view->redirectsList = $this->view->render('backend/seo/loadredirectslist.phtml');
 	}
@@ -155,7 +166,8 @@ class Backend_SeoController extends Zend_Controller_Action {
 	public function deeplinksAction() {
 		$deeplinksForm    = new Application_Form_Deeplink();
 		$pageMapper       = Application_Model_Mappers_PageMapper::getInstance();
-		$deeplinksForm->setToasterPages($pageMapper->fetchIdUrlPairs());
+        $lang = Zend_Locale::getLocaleToTerritory($this->getRequest()->getParam('lang') ? $this->getRequest()->getParam('lang') : Tools_Localization_Tools::getLangDefault());
+		$deeplinksForm->setToasterPages($pageMapper->fetchIdUrlPairs($lang));
 		if($this->getRequest()->isPost()) {
             $deeplinksForm = Tools_System_Tools::addTokenValidatorZendForm($deeplinksForm, Tools_System_Tools::ACTION_PREFIX_DEEPLINKS);
 			if($deeplinksForm->isValid($this->getRequest()->getParams())) {
@@ -247,7 +259,8 @@ class Backend_SeoController extends Zend_Controller_Action {
 
 	public function loadsculptingdataAction() {
 		$tree  = array();
-		$pages = Application_Model_Mappers_PageMapper::getInstance()->fetchAll();
+        $lang = Zend_Locale::getLocaleToTerritory($this->view->currentLang);
+		$pages = Application_Model_Mappers_PageMapper::getInstance()->fetchAll("lang = '".$lang."'");
 		foreach ($pages as $key => $page) {
 			if($page->getParentId() == 0) {
 				$silo = Application_Model_Mappers_SiloMapper::getInstance()->find($page->getSiloId());
@@ -499,5 +512,29 @@ class Backend_SeoController extends Zend_Controller_Action {
 	    }
 	    echo $sitemapContent;
    }
+
+    private function _addlangSection($currentLang)
+    {
+        $this->view->langSection = array();
+        $currentLang = $currentLang !== null ? $currentLang : Tools_Localization_Tools::getLangDefault();
+
+        $activeLanguagesList = Tools_Localization_Tools::getActiveLanguagesList();
+        if (sizeof($activeLanguagesList) > 1) {
+            $action = $this->getRequest()->getParam('action');
+            $path = $this->_helper->website->getUrl().'backend/backend_seo/' . $action . '/';
+
+            foreach ($activeLanguagesList as $code => $name) {
+                $url = $path . 'lang/' . $code;
+
+                $this->view->langSection[$code] = array(
+                    'title'  => 'Show '. $name .' pages ' . $action,
+                    'active' => ($code === $currentLang),
+                    'href'   => $url
+                );
+            }
+        }
+
+        return !empty($this->view->langSection) ? true : false;
+    }
 }
 
