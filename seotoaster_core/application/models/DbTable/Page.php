@@ -26,7 +26,7 @@ class Application_Model_DbTable_Page extends Zend_Db_Table_Abstract {
         $where    = $this->getAdapter()->quoteInto("show_in_menu = '?'", $menuType);
         $sysWhere = $this->getAdapter()->quoteInto("system = '?'", intval($fetchSysPages));
         $select   = $this->getAdapter()->select()
-            ->from('page', array('id', 'parentId' => 'parent_id', 'protected', 'external_link_status', 'external_link', 'default_lang_id'))
+            ->from('page', array('id', 'parentId' => 'parent_id', 'protected', 'external_link_status', 'external_link', 'mainid' => 'default_lang_id'))
             ->joinLeft('optimized', 'page_id = id', null)
             ->columns(array(
                 'url'          => new Zend_Db_Expr('COALESCE(optimized.url, page.url)'),
