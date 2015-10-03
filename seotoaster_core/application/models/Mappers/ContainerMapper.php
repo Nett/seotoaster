@@ -38,7 +38,7 @@ class Application_Model_Mappers_ContainerMapper extends Application_Model_Mapper
 		else {
 			return $this->getDbTable()->update(
                 $data,
-                array('id = ?' => $container->getId(), 'lang = ?' => $container->getLang())
+                array('id = ?' => $container->getId())
             );
 		}
 	}

@@ -490,6 +490,7 @@ class Backend_ContentController extends Zend_Controller_Action {
                 $model->setContent(
                     $configRepeat->getQuantity().':'.$configRepeat->getOrderContent().':'.$configRepeat->getInversion()
                 );
+				$model->setLang(null);
                 $mapper->save($model);
             }
         }

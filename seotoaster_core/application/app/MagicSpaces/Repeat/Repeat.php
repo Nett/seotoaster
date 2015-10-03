@@ -102,8 +102,9 @@ class MagicSpaces_Repeat_Repeat extends Tools_MagicSpaces_Abstract
             $translator = Zend_Registry::get('Zend_Translate');
             $editLink   = '<a class="tpopup generator-links" data-pwidth="'.$this->_popupWidth.'" data-pheight="'
                 .$this->_popupHeighth.'" title="'.$translator->translate('Edit').'" href="javascript:;" data-url="'
-                .$this->_toasterData['websiteUrl'].'backend/backend_content/editrepeat/pageId/'
-                .$this->_toasterData['id'].'/repeatName/'.$this->_params[0].'/contentType/'.$this->_contentType.'">'
+                .$this->_toasterData['websiteUrl']
+                .'backend/backend_content/editrepeat/pageId/'.$this->_toasterData['defaultLangId']
+                .'/repeatName/'.$this->_params[0].'/contentType/'.$this->_contentType.'">'
                 .$translator->translate('Edit repeat') .'- <em>'.$this->_params[0].'</em>'
                 .(($this->_contentType === Application_Model_Models_Container::TYPE_STATICCONTENT) ? ' (static)' : '')
                 .'</a>';
