@@ -356,14 +356,15 @@ class Tools_Mail_SystemMailWatchdog implements Interfaces_Observer {
 
             $cDbTable = new Application_Model_DbTable_Container();
             $select = $cDbTable->getAdapter()->select()->from('container', array(
-                'uniqHash' => new Zend_Db_Expr("MD5(CONCAT_WS('-',`name`, COALESCE(`page_id`, 0), `container_type`))"),
+                'uniqHash' => new Zend_Db_Expr("MD5(CONCAT_WS('-',`name`, COALESCE(`page_id`, 0), `container_type`, `lang`))"),
                 'id',
                 'name',
                 'page_id',
                 'container_type',
                 'content',
                 'published',
-                'publishing_date'
+                'publishing_date',
+                'default_lang_id'
             ))
             ->where('(container_type = 2 OR container_type = 4)')
             ->where('page_id IS NULL');

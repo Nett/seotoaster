@@ -165,14 +165,15 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
             $select = $this->getDbTable()->getAdapter()->select()->from(
                 'container',
                 array(
-                    'uniqHash' => new Zend_Db_Expr("MD5(CONCAT_WS('-',`name`, COALESCE(`page_id`, 0), `container_type`))"),
+                    'uniqHash' => new Zend_Db_Expr("MD5(CONCAT_WS('-',`name`, COALESCE(`page_id`, 0), `container_type`, `lang`))"),
                     'id',
                     'name',
                     'page_id',
                     'container_type',
                     'content',
                     'published',
-                    'publishing_date'
+                    'publishing_date',
+                    'default_lang_id'
                 )
             )->where('page_id IS NULL OR page_id = ?', $pageRow['id']);
             $pageRow['containers'] = $this->getDbTable()->getAdapter()->fetchAssoc($select);
