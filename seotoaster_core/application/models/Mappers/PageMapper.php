@@ -208,15 +208,20 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
     public function fetchAllDraftPages()
     {
-        return $this->fetchAll("draft = '1'", array(), true);
+        $lang = Tools_Localization_Tools::getLangDefault();
+        $lang = Zend_Locale::getLocaleToTerritory($lang);
+        return $this->fetchAll("draft = '1' AND lang = '".$lang."'", array(), true);
     }
 
     public function getDraftPagesCount()
     {
+        $lang = Tools_Localization_Tools::getLangDefault();
+        $lang = Zend_Locale::getLocaleToTerritory($lang);
         $table = $this->getDbTable();
         $select = $table->select()
             ->from($table, array('count' => new Zend_Db_Expr('COUNT(draft)')))
             ->where('draft = ?', '1')
+            ->where('lang = ?', $lang)
             ->where('system = ?', '1');
 
         return $table->getAdapter()->fetchOne($select);
