@@ -210,7 +210,7 @@ class Backend_ContentController extends Zend_Controller_Action {
 
         $activeLanguagesList = Tools_Localization_Tools::getActiveLanguagesList();
         if (sizeof($activeLanguagesList) > 1) {
-            if($pageId !== null) {
+            if($pageId !== null && !empty($pageId)) {
                 $pageData = Application_Model_Mappers_PageMapper::getInstance()->find($pageId);
                 $pagesData = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData(
                     $pageData->getDefaultLangId()
@@ -232,7 +232,7 @@ class Backend_ContentController extends Zend_Controller_Action {
                 $action = 'Edit';
                 $url = $path . 'edit/';
                 if(!isset($containers[$langCode]['id'])){
-                    $url .= 'defaultLangId/' . $containerModel->getDefaultLangId() . ($pageId !== null ? '/pageId/' . $pagesData[$langCode]['id'] : '');
+                    $url .= 'defaultLangId/' . $containerModel->getDefaultLangId() . (($pageId !== null && !empty($pageId)) ? '/pageId/' . $pagesData[$langCode]['id'] : '');
                     $action = 'Add';
                 }else{
                     $url .= 'id/' . $containers[$langCode]['id'];
