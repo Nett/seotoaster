@@ -64,6 +64,14 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
         if ($page->getId()) {
             $this->getDbTable()->update($data, array('id = ?' => $page->getId()));
+
+            $this->getDbTable()->update(
+                array(
+                    'draft'               => intval($page->getDraft()),
+                    'publish_at'          => (!$page->getPublishAt()) ? null : date('Y-m-d', strtotime($page->getPublishAt()))
+                ),
+                array('parent_id = ?' => $page->getId())
+            );
         } else {
             $pageId = $this->getDbTable()->insert($data);
             $page->setId($pageId);
@@ -177,7 +185,27 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
                 )
             )->where('page_id IS NULL OR page_id = ?', $pageRow['id']);
             $pageRow['containers'] = $this->getDbTable()->getAdapter()->fetchAssoc($select);
-            $entries[] = $this->_toModel($pageRow);
+            if($pageRow['default_lang_id'] !== $pageRow['id']){
+                $selectFrom = $this->getDbTable()->getAdapter()->select()->from('container', array(
+                    'uniqName' => new Zend_Db_Expr("CONCAT_WS('-', `name`,`container_type`)"),
+                    'id',
+                    'name',
+                    'page_id',
+                    'container_type',
+                    'content',
+                    'published',
+                    'publishing_date',
+                    'default_lang_id'
+                ));
+                $pageMainLang = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
+                $selectMain = $selectFrom->where("page_id = '".$pageRow['default_lang_id']."' AND lang = '".$pageMainLang."'")
+                    ->orWhere("page_id IS NULL AND lang = '".$pageMainLang."'");
+                $pageRow['containersMain'] = $this->getDbTable()->getAdapter()->fetchAssoc($selectMain);
+            }
+            $lang  = Zend_Locale::getLocaleToTerritory(isset($_COOKIE["localization"]) ? $_COOKIE["localization"] : Tools_Localization_Tools::getLangDefault());
+            if($pageRow['lang'] === $lang) {
+                $entries[] = $this->_toModel($pageRow);
+            }
         }
         if ($firstOccurrenceOnly) {
             return (isset($entries[0])) ? $entries[0] : null;
@@ -287,14 +315,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
 
     public function findByParentId($parentId, $draft = false)
     {
-        $lang = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
-        if(isset($_COOKIE["screenLang"])) {
-            $lang = $_COOKIE["screenLang"];
-        } else if(isset($_COOKIE["localization"])){
-            $lang = Zend_Locale::getLocaleToTerritory($_COOKIE["localization"]);
-        }
         $where = $this->getDbTable()->getAdapter()->quoteInto('parent_id = ?', $parentId);
-        $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto('lang = ?', $lang);
         if ($draft) {
             $where .= ' OR ' . $this->getDbTable()->getAdapter()->quoteInto('draft = ?', '1');
         }

@@ -1,19 +1,33 @@
 <label class="fl-left pointer">
-	<input type="checkbox" id="published" <?php echo ($this->published) ? 'checked="checked"' : ''; ?> name="published" value="<?php echo ($this->published) ? '1' : '0'; ?>" />
+	<input
+		id="published"
+		<?php echo ($this->published) ? 'checked' : ''; ?>
+		<?php echo ($this->readOnly) ? 'disabled' : ''; ?>
+		value="<?php echo ($this->published) ? '1' : '0'; ?>"
+		name="published"
+		type="checkbox" />
 	<?php echo $this->translate($this->publishedLabel);?>
 </label>
 <span id="publish-later" class="fl-left hide ml3">&nbsp;&nbsp;<?php echo $this->translate($this->publishAtLabel);?>:&nbsp;&nbsp;
-	<?php echo $this->datePicker(
-		'datepicker',
-		((intval($this->publishAt)) ? date('M j, Y', strtotime($this->publishAt)) : ''),
-		array(
-			'defaultDate' => '',
-			'onSelect'    => (isset($this->onselectCallback)) ? new Zend_Json_Expr($this->onselectCallback) : ''
-		),
-		array(
-			'style' => 'width:100px;',
-            'class' => 'small'
-		));
+	<?php if(!$this->readOnly){
+		echo $this->datePicker(
+			'datepicker',
+			((intval($this->publishAt)) ? date('M j, Y', strtotime($this->publishAt)) : ''),
+			array(
+				'defaultDate' => '',
+				'onSelect'    => (isset($this->onselectCallback)) ? new Zend_Json_Expr($this->onselectCallback) : ''
+			),
+			array(
+				'style' => 'width:100px;',
+				'class' => 'small',
+			)
+		);
+	} else {
+		echo '<input id="datepicker" class="small" style="width:100px"'.
+				(($this->readOnly) ? 'disabled' : '') .'
+				value="'.((intval($this->publishAt)) ? date('M j, Y', strtotime($this->publishAt)) : '').'"
+				type="text" />';
+	}
 	?>
 </span>
 <script type="text/javascript">

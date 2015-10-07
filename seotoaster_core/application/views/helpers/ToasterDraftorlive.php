@@ -43,6 +43,7 @@ class Zend_View_Helper_ToasterDraftorlive extends Zend_View_Helper_Abstract {
 		$this->view->dateFormat     = (isset($options['dateFormat']) && $options['dateFormat']) ? $options['dateFormat'] : self::DEFAULT_DATE_FORMAT;
 		$this->view->published      = (isset($options['published'])) ? $options['published'] : true;
 		$this->view->publishAt      = (isset($options['publishAt']) && $options['publishAt']) ? $options['publishAt'] : '';
+		$this->view->readOnly       = (isset($options['readOnly']) && $options['readOnly']) ? $options['readOnly'] : '';
 		return $this->view->render('admin' . DIRECTORY_SEPARATOR . '_draftorlive.phtml');
 	}
 

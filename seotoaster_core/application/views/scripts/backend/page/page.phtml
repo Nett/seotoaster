@@ -4,7 +4,8 @@
 	$draftOrLive = $this->toasterDraftorlive(array(
 		'published'        => !$this->pageForm->getDraft(),
 		'publishAt'        => $this->pageForm->getPublishAt(),
-		'onselectCallback' => 'datepickerCallback'
+		'onselectCallback' => 'datepickerCallback',
+        'readOnly'         => $this->readOnlyOptions
 	));
 
     $externalLink = '';
@@ -147,7 +148,8 @@
             $('#falist').show("slide", { direction: "right"});
         }).on('click', '#apply-changes', function(){
             $('#currentReload').prop('checked', true);
-            $form.toggleClass('_reload _reload-screen');
+            $form.removeClass('_reload')
+                .addClass('_reload-screen');
         }).on('click', '.language-link', function(e){
             var href = $(this).attr('href');
             if(startData !== $form.serialize()){

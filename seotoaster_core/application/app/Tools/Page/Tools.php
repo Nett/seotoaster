@@ -192,14 +192,14 @@ class Tools_Page_Tools
         return $prepared;
     }
 
-    public static function processPagePreviewImage($pageUrl, $tmpPreviewFile = null)
+    public static function processPagePreviewImage($pageUrl, $tmpPreviewFile = null, $lang = null)
     {
         $websiteHelper      = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
         $pageHelper         = Zend_Controller_Action_HelperBroker::getStaticHelper('page');
         $websiteConfig      = Zend_Registry::get('website');
         $pageUrl            = str_replace(DIRECTORY_SEPARATOR, '-', $pageHelper->clean($pageUrl));
         $previewPath        = $websiteHelper->getPath() . $websiteHelper->getPreview();
-        $lang               = isset($_COOKIE["screenLang"]) ? '_'.substr($_COOKIE["screenLang"], 0, strpos($_COOKIE["screenLang"], '_')) : '';
+        $lang               = !empty($lang) ? '_'.$lang : '';
 
 //        $filelist           = Tools_Filesystem_Tools::findFilesByExtension($previewPath, '(jpg|gif|png)', false, false, false);
         $currentPreviewList = glob($previewPath.$pageUrl.$lang.'.{jpg,jpeg,png,gif}', GLOB_BRACE);

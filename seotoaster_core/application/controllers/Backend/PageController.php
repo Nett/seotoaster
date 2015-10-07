@@ -109,10 +109,12 @@ class Backend_PageController extends Zend_Controller_Action {
         if (($defaultLangId = !empty($defaultLangId) ? $defaultLangId : $page->getDefaultLangId())
             && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))
         ) {
+            $pages    = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($page->getParentId());
+            $langCode = Zend_Locale::getLocaleToTerritory($lang);
             $page->setOptimized(false);
-            $page->setLang(Zend_Locale::getLocaleToTerritory($lang));
+            $page->setLang($langCode);
             $page->setId(null);
-//            $page->setShowInMenu(Application_Model_Models_Page::IN_NOMENU);
+            $page->setParentId($pages[$langCode]['id']);
         }
         else {
             $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
@@ -124,8 +126,6 @@ class Backend_PageController extends Zend_Controller_Action {
                 $this->view->readOnlyOptions = false;
             }
         }
-
-        setcookie("screenLang", $page->getLang());
 
         $this->_addlangSection($defaultLangId, $page);
         $this->view->localizationActive = Tools_Localization_Tools::getActiveLanguagesList();
@@ -266,11 +266,11 @@ class Backend_PageController extends Zend_Controller_Action {
 
 	             // saving new page preview image is recieved it in request
                 if (isset($params['pagePreviewImage']) && !empty ($params['pagePreviewImage'])) {
-                    $previewImageName = Tools_Page_Tools::processPagePreviewImage((!$optimized) ? $page->getUrl() : $this->_helper->session->oldPageUrl, $params['pagePreviewImage']);
+                    $previewImageName = Tools_Page_Tools::processPagePreviewImage((!$optimized) ? $page->getUrl() : $this->_helper->session->oldPageUrl, $params['pagePreviewImage'], $params['pageLang']);
                 } // else updating existing
                 elseif (!$optimized && $this->_helper->session->oldPageUrl !== $page->getUrl()) {
                     // TODO: Refactor this part
-	                $previewImageName = Tools_Page_Tools::processPagePreviewImage((!$optimized) ? $page->getUrl() : $this->_helper->session->oldPageUrl, Tools_Page_Tools::processPagePreviewImage($this->_helper->session->oldPageUrl));
+	                $previewImageName = Tools_Page_Tools::processPagePreviewImage((!$optimized) ? $page->getUrl() : $this->_helper->session->oldPageUrl, Tools_Page_Tools::processPagePreviewImage($this->_helper->session->oldPageUrl, null, $params['pageLang']), $params['pageLang']);
                 }
 
 	            if(isset($previewImageName)) {
