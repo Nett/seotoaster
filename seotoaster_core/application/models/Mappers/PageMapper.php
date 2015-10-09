@@ -261,7 +261,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
     {
         $lang = ($lang !== null) ? $lang : Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
         $where = sprintf(
-            "show_in_menu = '%s' AND parent_id = %d AND news != '%s' AND lang != '%s'",
+            "show_in_menu = '%s' AND parent_id = %d AND news != '%s' AND lang = '%s'",
             Application_Model_Models_Page::IN_NOMENU,
             Application_Model_Models_Page::IDCATEGORY_DEFAULT,
             Application_Model_Models_Page::IS_NEWS_PAGE,
