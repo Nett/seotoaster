@@ -109,12 +109,14 @@ class Backend_PageController extends Zend_Controller_Action {
         if (($defaultLangId = !empty($defaultLangId) ? $defaultLangId : $page->getDefaultLangId())
             && ($lang = filter_var($this->getRequest()->getParam('lang'), FILTER_SANITIZE_STRING))
         ) {
-            $pages    = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($page->getParentId());
             $langCode = Zend_Locale::getLocaleToTerritory($lang);
             $page->setOptimized(false);
             $page->setLang($langCode);
             $page->setId(null);
-            $page->setParentId($pages[$langCode]['id']);
+            if($page->getParentId() > 0) {
+                $pages = $mapper->getCurrentPageLocalData($page->getParentId());
+                $page->setParentId($pages[$langCode]['id']);
+            }
         }
         else {
             $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
@@ -134,7 +136,7 @@ class Backend_PageController extends Zend_Controller_Action {
             $pageForm->getElement('pageCategory')->addMultiOptions($this->_getMenuOptions($page));
             if($this->getRequest()->getParam('defaultLangId') && $page->getParentId() > 0){
                 $pageParent = $mapper->find($page->getParentId());
-                $pageLangs = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($pageParent->getDefaultLangId());
+                $pageLangs = $mapper->getCurrentPageLocalData($pageParent->getDefaultLangId());
                 $pageParentId = $pageLangs[$page->getLang()]['id'];
                 $page->setParentId($pageParentId);
             }
@@ -300,9 +302,9 @@ class Backend_PageController extends Zend_Controller_Action {
                 if($page->getLang() === $langDefault){
                     $mapper->updateLangPages($params['pageId'], $page);
 
-                    $currentPages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($params['pageId']);
+                    $currentPages = $mapper->getCurrentPageLocalData($params['pageId']);
                     if (sizeof($currentPages) > 1 && $page->getParentId() > 0) {
-                        $subPages = Application_Model_Mappers_PageMapper::getInstance()->getCurrentPageLocalData($page->getParentId());
+                        $subPages = $mapper->getCurrentPageLocalData($page->getParentId());
                         foreach ($currentPages as $lang => $value) {
                             if ($lang !== $langDefault) {
                                 $mapper->updateParentIdPages($value['id'], $subPages[$lang]['id']);
@@ -462,14 +464,32 @@ class Backend_PageController extends Zend_Controller_Action {
                     $this->_helper->response->fail($this->_helper->language->translate('Can\'t save order. List is broken'));
                     break;
                 case 'renew':
-                    $newCategoryId = $this->getRequest()->getParam('categoryId');
-                    $pagesList     = $this->getRequest()->getParam('pages');
-                    $menu          = $this->getRequest()->getParam('menu');
+                    $newCategoryId    = $this->getRequest()->getParam('categoryId');
+                    $pagesList        = $this->getRequest()->getParam('pages');
+                    $menu             = $this->getRequest()->getParam('menu');
+                    if($newCategoryId > 0){
+                        $newCategoryPages = $pageMapper->getCurrentPageLocalData($newCategoryId);
+                    }
                     foreach ($pagesList as $pageId) {
-                        $page = $pageMapper->find($pageId);
-                        $page->setParentId($newCategoryId);
-                        $page->setShowInMenu($menu);
-                        $pageMapper->save($page);
+                        if(isset($newCategoryPages)) {
+                            $currentPages = $pageMapper->getCurrentPageLocalData($pageId);
+                            foreach ($currentPages as $lang => $value) {
+                                if (isset($newCategoryPages[$lang])) {
+                                    $page = $pageMapper->find($value['id']);
+                                    $page->setParentId($newCategoryPages[$lang]['id']);
+                                    $page->setShowInMenu($menu);
+                                    $pageMapper->save($page);
+                                }
+                            }
+                        } else {
+                            $pageMapper->updatePagesByDefaultId(
+                                $pageId,
+                                array(
+                                    'parent_id' => $newCategoryId,
+                                    'show_in_menu' => $menu
+                                )
+                            );
+                        }
                     }
                     break;
 
@@ -484,7 +504,7 @@ class Backend_PageController extends Zend_Controller_Action {
         if(is_array($categories) && !empty ($categories)) {
             foreach ($categories as $category) {
 	            // TODO: remove next check and code something smart
-	            if ($category->getDraft()){
+	            if ($category->getDraft() || $category->getLang() !== Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault())){
 		            continue;
 	            }
                 $tree[] = array(

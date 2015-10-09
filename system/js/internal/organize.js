@@ -19,7 +19,7 @@ $(function() {
                     showMessage(response.responseText);
                     $(pagesIds).each(function() {
                         $('#' + this).remove();
-                    })
+                    });
                 }
             });
         });
@@ -32,20 +32,13 @@ $(function() {
         stop    : saveCategoriesOrder
     });
 
-    $('.move').each(function(){
-        $(this).click(function(e) {
-            if(e.ctrlKey) {
-                $(this).toggleClass('selected');
-                if($(this).find("input[type='checkbox']").prop("checked")){
-                    $(this).find("input[type='checkbox']").prop("checked", false);
-                } else{
-                    $(this).find("input[type='checkbox']").prop("checked", true);
-                }
-
-            }
-        });
-    });
-    $('.organise').on('click', '.page-remove', function(e){
+    $(document).on('click', '.move', function(e) {
+        if(e.ctrlKey) {
+            $(this).toggleClass('selected');
+            var selected = $(this).find("input[type='checkbox']").prop("checked");
+            $(this).find("input[type='checkbox']").prop("checked", !selected);
+        }
+    }).on('change', '.page-remove', function(e){
         e.stopImmediatePropagation();
         $(this).closest('.move').toggleClass('selected');
     });
@@ -64,7 +57,7 @@ $(function() {
                 $(this).find('li').each(function() {
                     pages.push($(this).attr('id'));
                 });
-                renewedData = {
+                var renewedData = {
                     act        : 'renew',
                     menu       : $(this).parent().data('menu'),
                     categoryId : $(this).parent().attr('id'),
@@ -108,25 +101,23 @@ function saveCategoriesOrder() {
     var rankins = 0;
     var ordered = [];
     $('#sortable-main').find('.category-data').each(function() {
-        $(this).find('.ranking').html('#' + ++rankins);
+        $(this).find('.ranking').html('#' + (++rankins));
         ordered.push($(this).attr('id'));
         $(this).find('.organise li').each(function() {
             ordered.push($(this).attr('id'));
-        })
+        });
     });
     $.ajax({
         type: 'post',
         url : $('#website_url').val() + 'backend/backend_page/organize/',
         data: {act: 'save', ordered: JSON.stringify(ordered), secureToken: $('#sortable-main').find('.secureToken').val()},
         dataType: 'json',
-        beforeSend: function() {
-            showSpinner();
-        },
+        beforeSend:  showSpinner(),
         success: function(response) {
             hideSpinner();
             showMessage(response.responseText, response.error);
         }
-    })
+    });
 }
 
 function removeMarks(elements){
@@ -135,7 +126,7 @@ function removeMarks(elements){
             $.each(elements,function(key,el){
                 $(el).removeClass("selected");
                 $(el).find("input[type='checkbox']").attr("checked", false);
-            })
+            });
         } else {
             $(elements).removeClass("selected");
             $(elements).find("input[type='checkbox']").attr("checked", false);
