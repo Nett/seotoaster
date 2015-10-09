@@ -28,8 +28,9 @@ class Widgets_Sitemap_Sitemap extends Widgets_Abstract {
         $configHelper    = Zend_Controller_Action_HelperBroker::getStaticHelper('config');
         $showMemberPages = (boolean) $configHelper->getConfig('memPagesInMenu');
         $isAllowed       = Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_PAGE_PROTECTED);
-        $flatPages       = Application_Model_Mappers_PageMapper::getInstance()->fetchAllStaticMenuPages();
-        $nomenuPages     = Application_Model_Mappers_PageMapper::getInstance()->fetchAllNoMenuPages();
+        $lang            = isset($_COOKIE["localization"]) ? Zend_Locale::getLocaleToTerritory($_COOKIE["localization"]) : null;
+        $flatPages       = Application_Model_Mappers_PageMapper::getInstance()->fetchAllStaticMenuPages($lang);
+        $nomenuPages     = Application_Model_Mappers_PageMapper::getInstance()->fetchAllNoMenuPages($lang);
         foreach($pages as $key => $page) {
             if($page['parentId'] == 0) {
                 if((bool)$page['protected'] && !$isAllowed && !$showMemberPages) {

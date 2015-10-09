@@ -100,7 +100,8 @@ class Widgets_Menu_Menu extends Widgets_Abstract {
     }
 
     private function _renderFlatMenu() {
-        $flatMenuPages = Application_Model_Mappers_PageMapper::getInstance()->fetchAllStaticMenuPages();
+        $lang = isset($_COOKIE["localization"]) ? Zend_Locale::getLocaleToTerritory($_COOKIE["localization"]) : null;
+        $flatMenuPages = Application_Model_Mappers_PageMapper::getInstance()->fetchAllStaticMenuPages($lang);
         if (is_array($flatMenuPages) && !empty($flatMenuPages)) {
             $this->_view->staticPages = $flatMenuPages;
             return $this->_view->render('staticmenu.phtml');

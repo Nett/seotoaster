@@ -220,12 +220,14 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $this->getDbTable()->getAdapter()->fetchCol($select);
     }
 
-    public function fetchAllStaticMenuPages()
+    public function fetchAllStaticMenuPages($lang = null)
     {
+        $lang = ($lang !== null) ? $lang : Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
         $where = $this->getDbTable()->getAdapter()->quoteInto(
             "show_in_menu = '?'",
             Application_Model_Models_Page::IN_STATICMENU
         );
+        $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto("lang = ?", $lang);
         return $this->fetchAll($where);
     }
 
@@ -255,13 +257,15 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $table->getAdapter()->fetchOne($select);
     }
 
-    public function fetchAllNomenuPages()
+    public function fetchAllNomenuPages($lang = null)
     {
+        $lang = ($lang !== null) ? $lang : Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
         $where = sprintf(
-            "show_in_menu = '%s' AND parent_id = %d AND news != '%s'",
+            "show_in_menu = '%s' AND parent_id = %d AND news != '%s' AND lang != '%s'",
             Application_Model_Models_Page::IN_NOMENU,
             Application_Model_Models_Page::IDCATEGORY_DEFAULT,
-            Application_Model_Models_Page::IS_NEWS_PAGE
+            Application_Model_Models_Page::IS_NEWS_PAGE,
+            $lang
         );
         return $this->fetchAll($where);
     }
@@ -557,6 +561,15 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
     {
         $where = $this->getDbTable()->getAdapter()->quoteInto("id =?", $id);
         return $this->getDbTable()->update(array('parent_id'=>$newParentId), $where);
+    }
+
+    public function updatePagesByDefaultId($defaultLangId, $updateArray)
+    {
+        if(!is_array($updateArray)){
+            return null;
+        }
+        $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id =?", $defaultLangId);
+        return $this->getDbTable()->update($updateArray, $where);
     }
 
     public function getCurrentPageLocalData($defaultLangId)
