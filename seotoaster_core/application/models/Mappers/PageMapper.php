@@ -389,7 +389,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $this->getDbTable()->getAdapter()->fetchPairs($select);
     }
 
-    protected function  _findWhere($where, $fetchSysPages = false)
+    protected function _findWhere($where, $fetchSysPages = false)
     {
         $whereExploded = explode('=', $where);
         $spot = strpos($whereExploded[0], '.');
@@ -570,6 +570,28 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         }
         $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id =?", $defaultLangId);
         return $this->getDbTable()->update($updateArray, $where);
+    }
+
+    public function updateLanguageRows($oldLocalization, $newLocalization)
+    {
+        $where = $this->getDbTable()->getAdapter()->quoteInto("lang =?", $oldLocalization);
+        return $this->getDbTable()->update(array('lang' => $newLocalization), $where);
+    }
+
+    public function cloneRowsWithNewLocalization($oldLocalization, $newLocalization)
+    {
+        $where = $this->getDbTable()->getAdapter()->quoteInto("lang =?", $oldLocalization);
+        $pages = $this->fetchAll($where);
+        foreach ($pages as $page) {
+            $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id = ?", $page->getDefaultLangId());
+            $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto("lang = ?", $newLocalization);
+            $checkPages = $this->fetchAll($where);
+            if($checkPages === null) {
+                $page->setId(null);
+                $page->setLang($newLocalization);
+                $this->save($page);
+            }
+        }
     }
 
     public function getCurrentPageLocalData($defaultLangId)

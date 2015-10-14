@@ -57,6 +57,23 @@ class Backend_ConfigController extends Zend_Controller_Action {
                     $languageSelect->setMultiOptions($this->_helper->language->getLanguages(false));
 				}
 				if ($isSuperAdminLogged) {
+					$oldLanguage = Zend_Locale::getLocaleToTerritory($this->_configMapper->getConfig()['language']);
+					$newLanguage = Zend_Locale::getLocaleToTerritory($selectedLang);
+					if($oldLanguage !== $newLanguage){
+						if((bool)$this->getRequest()->getParam('replaceLocalization')) {
+							Application_Model_Mappers_PageMapper::getInstance()->updateLanguageRows($oldLanguage, $newLanguage);
+							Application_Model_Mappers_ContainerMapper::getInstance()->updateLanguageRows($oldLanguage, $newLanguage);
+						}else{
+							$configForm->getElement('activeLanguagesList')->setValue(
+								$configForm->getElement('activeLanguagesList')->getValue()
+								. ',' .
+								$this->_configMapper->getConfig()['language']
+							);
+							Application_Model_Mappers_PageMapper::getInstance()->cloneRowsWithNewLocalization($oldLanguage, $newLanguage);
+							Application_Model_Mappers_ContainerMapper::getInstance()->cloneRowsWithNewLocalization($oldLanguage, $newLanguage);
+						}
+					}
+
                     // Update modified templates in developer mode and clean concatcss cache
                     if (!((bool) $configForm->getElement('enableDeveloperMode')->getValue())
                         && (bool) $this->_helper->config->getConfig('enableDeveloperMode')
@@ -153,8 +170,8 @@ class Backend_ConfigController extends Zend_Controller_Action {
 			$configForm->getElement('suPassword')->setValue($suPassword);
 		}
 
-		$this->view->langDefault = $this->_helper->config->getConfig('language');
-		$this->view->langList    = $this->_helper->language->getLanguages(false);
+		$this->view->langDefault = $languageSelect->getValue();
+		$this->view->langList    = $this->_helper->language->getLanguages();
 		$this->view->messages    = $this->_helper->flashMessenger->getMessages();
 		$this->view->configForm  = $configForm;
 	}

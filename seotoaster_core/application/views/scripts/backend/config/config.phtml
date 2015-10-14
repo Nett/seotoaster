@@ -1,8 +1,9 @@
 <script type="text/javascript">
     $(function() {
+        var langField = $('#activeLanguagesList');
         $('#tabs').tabs()
-            .on('click', function(){
-                var langs = $('#activeLanguagesList').val();
+            .on('change', '#language', function(){
+                var langs = langField.val();
                 langs = langs.split(',');
                 var langsIndex = langs.indexOf($('#language').val());
                 if(langsIndex !== -1) {
@@ -15,6 +16,10 @@
             });
         $('input[title], .tooltip').tooltip({
             track: true
+        });
+        $('.tooltip-localization').tooltip({
+            track: true,
+            content : "<?php echo $this->translate('Replace is checked - replace the previous localization on new localization'); ?> <hr class=\"mt5px mb5px\"> <?php echo $this->translate('Replace isn\'t checked - clone the previous localization with new localization params'); ?>"
         });
 
         // Join localizations for save
@@ -34,10 +39,10 @@
         array('helpSection' => $this->helpSection)
     ); ?>
     <form id="tabs" action="<?php echo $this->configForm->getAction(); ?>" method="<?php echo $this->configForm->getMethod(); ?>">
+        <input type="hidden" name="secureToken" value="<?php echo $this->secureToken;?>" />
         <ul class="header">
             <li><a href="#general-config"><?php echo $this->translate('General'); ?></a></li>
             <li><a href="#email-config"><?php echo $this->translate('Email settings'); ?></a></li>
-            <input type="hidden" name="secureToken" value="<?php echo $this->secureToken;?>" />
             <?php if ($this->isSuperAdmin): ?>
                 <li><a href="#security-config"><?php echo $this->translate('Admin access'); ?></a></li>
                 <li><a href="#advanced-config"><?php echo $this->translate('Advanced'); ?></a></li>
@@ -47,19 +52,23 @@
         </ul>
         <fieldset id="general-config" class="content-small-footer pr0 pl0">
             <div class="grid_5"><?php echo $this->configForm->getElement('language')->renderLabel(); ?></div>
-            <div class="grid_7 mt0px"><?php echo $this->configForm->getElement('language')->renderViewHelper(); ?></div>
-            <div class="grid_5"><label><?php echo $this->translate('Image size'); ?></label></div>
-            <div class="grid_7">
+            <div class="grid_2 alpha omega mt0px"><?php echo $this->configForm->getElement('language')->renderViewHelper(); ?></div>
+            <label class="grid_5 text-right mt5px tooltip-localization" title="<?php echo $this->translate("Replace the previous localization?"); ?>">
+                <?php echo $this->translate("Replace the previous localization?"); ?>
+                <input type="checkbox" name="replaceLocalization" id="replaceLocalization">
+            </label>
+            <div class="grid_5 cl-both"><label><?php echo $this->translate('Image size'); ?></label></div>
+            <div class="grid_7 alpha">
                 <?php echo $this->configForm->getElement('imgSmall')->renderViewHelper(); ?>
                 <?php echo $this->configForm->getElement('imgMedium')->renderViewHelper(); ?>
                 <?php echo $this->configForm->getElement('imgLarge')->renderViewHelper(); ?>
             </div>
             <div class="grid_5"><?php echo $this->configForm->getElement('teaserSize')->renderLabel(); ?></div>
-            <div class="grid_7"><?php echo $this->configForm->getElement('teaserSize')->renderViewHelper(); ?></div>
+            <div class="grid_7 alpha"><?php echo $this->configForm->getElement('teaserSize')->renderViewHelper(); ?></div>
             <div class="grid_5">
                 <?php echo $this->configForm->getElement('memPagesInMenu')->renderLabel(); ?>
             </div>
-            <div class="grid_1">
+            <div class="grid_1 alpha">
                 <?php echo $this->configForm->getElement('memPagesInMenu')->renderViewHelper(); ?>
             </div>
             <div class="grid_5 text-right">
@@ -71,7 +80,7 @@
             <div class="grid_5">
                 <?php echo $this->configForm->getElement('controlPanelStatus')->renderLabel(); ?>
             </div>
-            <div class="grid_1">
+            <div class="grid_1 alpha">
                 <?php echo $this->configForm->getElement('controlPanelStatus')->renderViewHelper(); ?>
             </div>
             <div class="grid_5 text-right">
@@ -175,10 +184,10 @@
                     <?php
                     $activeLanguagesList = $this->configForm->getElement('activeLanguagesList')->getValue();
                     $activeLanguagesList = !empty($activeLanguagesList) ? explode(',', $activeLanguagesList) : array();
-                    foreach ($this->langList as $key => $lang):
+                    foreach ($this->langList as $key => $value):
                     if ($this->langDefault !== $key):
                     ?>
-                    <label class="pointer background" for="lang-<?php echo $lang; ?>">
+                    <label class="pointer background" for="lang-<?php echo $value['language']; ?>">
                         <input id="lang-<?php echo $key; ?>"
                                class="lang-select fl-right switcher"
                                type="checkbox"
@@ -187,8 +196,8 @@
                                <?php echo (in_array($key, $activeLanguagesList, true)) ? 'checked="checked"' : ''; ?>>
                                <img class="align-baseline"
                                     border="0"
-                                    alt="<?php echo $lang; ?>"
-                                    src="<?php echo $this->websiteUrl.'system/images/flags/'.$key.'.png'; ?>">
+                                    alt="<?php echo $value['language']; ?>"
+                                    src="<?php echo $this->websiteUrl.$value['flag']; ?>">
                     </label>
                     <?php endif; ?>
                     <?php endforeach; ?>

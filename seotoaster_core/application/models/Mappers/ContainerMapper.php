@@ -183,6 +183,28 @@ class Application_Model_Mappers_ContainerMapper extends Application_Model_Mapper
         return $summaryArray;
     }
 
+    public function updateLanguageRows($oldLocalization, $newLocalization)
+    {
+        $where = $this->getDbTable()->getAdapter()->quoteInto("lang =?", $oldLocalization);
+        return $this->getDbTable()->update(array('lang' => $newLocalization), $where);
+    }
+
+    public function cloneRowsWithNewLocalization($oldLocalization, $newLocalization)
+    {
+        $where = $this->getDbTable()->getAdapter()->quoteInto("lang =?", $oldLocalization);
+        $containers = $this->fetchAll($where);
+        foreach ($containers as $container) {
+            $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id = ?", $container->getDefaultLangId());
+            $where .= ' AND ' . $this->getDbTable()->getAdapter()->quoteInto("lang = ?", $newLocalization);
+            $checkContainers = $this->fetchAll($where);
+            if($checkContainers === null) {
+                $container->setId(null);
+                $container->setLang($newLocalization);
+                $this->save($container);
+            }
+        }
+    }
+
     public function getCurrentContainerLocalData($defaultLangId)
     {
         $query = $this->getDbTable()->getAdapter()->select()
