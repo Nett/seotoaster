@@ -8,6 +8,7 @@ class Widgets_Website_Website extends Widgets_Abstract {
 
 	const OPT_URL = 'url';
 	const OPT_LANG = 'localization';
+	const OPT_LANG_DROPDOWN = 'dropdown';
 
 	protected function  _load() {
 		$content = '';
@@ -30,23 +31,34 @@ class Widgets_Website_Website extends Widgets_Abstract {
                     return '';
                 }
 
-                if (isset($urls[$this->_toasterOptions['lang']]['url'])
-                    && $urls[$this->_toasterOptions['lang']]['url'] === $this->_toasterOptions['url']
-                ) {
-                    unset($urls[$this->_toasterOptions['lang']]);
-                }
-                else {
-                    unset($urls[Zend_Locale::getLocaleToTerritory($langDefault)]);
-                }
-
                 $localizationContent = '';
-                foreach ($localization as $code => $name) {
-                    $langCode = Zend_Locale::getLocaleToTerritory($code);
-                    if(null !== $langCode && isset($urls[$langCode]['url'])){
-                        $lang = ($code === Tools_Localization_Tools::getLangDefault()) ? '' : $code . '/';
-                        $localizationContent .= '<a href="' .  $this->_toasterOptions['websiteUrl'] . $lang . $urls[$langCode]['url'] . '" title="' . $name . '">'
-                                                  . '<img class="lang-link" src="' . $this->_toasterOptions['websiteUrl'] . 'system/images/flags/' . $code . '.png" alt="' . $name . '" border="0">'
-                                              . '</a> ';
+                if(isset($this->_options[1]) && $this->_options[1] === self::OPT_LANG_DROPDOWN){
+                    $localizationContent .= '<select id="website-localization" onchange="window.location.href = this.value;">';
+                    foreach ($localization as $code => $name) {
+                        $langCode = Zend_Locale::getLocaleToTerritory($code);
+                        if (null !== $langCode && isset($urls[$langCode]['url'])) {
+                            $lang = ($code === $langDefault) ? '' : $code . '/';
+                            $selected = (($code === $langDefault) || (isset($_COOKIE["localization"]) && $code === $_COOKIE["localization"]) ? 'selected' : '');
+                            $localizationContent .= '<option value="' . $this->_toasterOptions['websiteUrl'] . $lang . $urls[$langCode]['url'] . '"' . $selected . '>' . '<img class="lang-link" src="' . $this->_toasterOptions['websiteUrl'] . 'system/images/flags/' . $code . '.png" alt="' . $name . '" border="0">' . $name . '</option> ';
+                        }
+                    }
+                    $localizationContent .= '</select>';
+
+                } else {
+                    if (isset($urls[$this->_toasterOptions['lang']]['url'])
+                        && $urls[$this->_toasterOptions['lang']]['url'] === $this->_toasterOptions['url']
+                    ) {
+                        unset($urls[$this->_toasterOptions['lang']]);
+                    }
+                    else {
+                        unset($urls[Zend_Locale::getLocaleToTerritory($langDefault)]);
+                    }
+                    foreach ($localization as $code => $name) {
+                        $langCode = Zend_Locale::getLocaleToTerritory($code);
+                        if (null !== $langCode && isset($urls[$langCode]['url'])) {
+                            $lang = ($code === Tools_Localization_Tools::getLangDefault()) ? '' : $code . '/';
+                            $localizationContent .= '<a href="' . $this->_toasterOptions['websiteUrl'] . $lang . $urls[$langCode]['url'] . '" title="' . $name . '">' . '<img class="lang-link" src="' . $this->_toasterOptions['websiteUrl'] . 'system/images/flags/' . $code . '.png" alt="' . $name . '" border="0">' . '</a> ';
+                        }
                     }
                 }
                 $content = $localizationContent;
