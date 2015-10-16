@@ -535,7 +535,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         return $this->getDbTable()->update(array('draft'=>0, 'system'=>0), $where);
     }
 
-    public function updateLangPages($defaultLangId, $newData)
+    public function updateLangPages($newData)
     {
         $dataUpdate = array(
             'template_id'          => $newData->getTemplateId(),
@@ -553,7 +553,7 @@ class Application_Model_Mappers_PageMapper extends Application_Model_Mappers_Abs
         if($newData->getParentId() <= 0){
             $dataUpdate['parent_id'] = $newData->getParentId();
         }
-        $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id =?", $defaultLangId);
+        $where = $this->getDbTable()->getAdapter()->quoteInto("default_lang_id =?", $newData->getDefaultLangId());
         return $this->getDbTable()->update($dataUpdate, $where);
     }
 

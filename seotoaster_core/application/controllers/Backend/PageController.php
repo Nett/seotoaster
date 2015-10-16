@@ -300,9 +300,9 @@ class Backend_PageController extends Zend_Controller_Action {
 
                 $langDefault = Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault());
                 if($page->getLang() === $langDefault){
-                    $mapper->updateLangPages($params['pageId'], $page);
+                    $mapper->updateLangPages($page);
 
-                    $currentPages = $mapper->getCurrentPageLocalData($params['pageId']);
+                    $currentPages = $mapper->getCurrentPageLocalData($page->getDefaultLangId());
                     if (sizeof($currentPages) > 1 && $page->getParentId() > 0) {
                         $subPages = $mapper->getCurrentPageLocalData($page->getParentId());
                         foreach ($currentPages as $lang => $value) {

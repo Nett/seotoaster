@@ -10,11 +10,24 @@
 
     $externalLink = '';
     if ($this->pageForm->getElement('url')->getValue() !== 'index') {
-        $externalLink = '<label class="ml2">' . $this->formCheckbox('external-link-switch', $this->pageForm->getElement('externalLinkStatus')->getValue(), array('checked' => $this->pageForm->getElement('externalLinkStatus')->getValue())) . '&nbsp;' . $this->translate('Create a simple link') . '</label>';
+        $externalLink = '<label class="ml2">' . $this->formCheckbox(
+                'external-link-switch',
+                $this->pageForm->getElement('externalLinkStatus')->getValue(),
+                !$this->readOnlyOptions
+                    ? array('checked' => $this->pageForm->getElement('externalLinkStatus')->getValue())
+                    : array('checked' => $this->pageForm->getElement('externalLinkStatus')->getValue(), 'disabled' => $this->readOnlyOptions)
+            ) . '&nbsp;' . $this->translate('Create a simple link') . '</label>';
     }
-	$optimizedCheck = '';
+    $optimizedCheck = '';
 	if($this->sambaOptimized):
-		$optimizedCheck = '<label class="ml2">' . $this->formCheckbox('sambaOptimized', $this->sambaOptimized, array('checked' => $this->sambaOptimized, 'id' => 'toggle-optimized')) . '&nbsp;' . $this->translate('Optimized') . '</label>';
+        $optimizedCheck = '<label class="ml2">' . $this->formCheckbox(
+                'sambaOptimized',
+                $this->sambaOptimized,
+                array(
+                    'checked' => $this->sambaOptimized,
+                    'id' => 'toggle-optimized'
+                )
+            ) . '&nbsp;' . $this->translate('Optimized') . '</label>';
 	endif;
 	echo $this->partial(
 		'admin'.DIRECTORY_SEPARATOR.'_header.phtml',
@@ -54,8 +67,8 @@
 			<legend class="h2"><?php echo $this->translate('Page Information'); ?></legend>
 			<p class="mt0px"><?php echo $this->pageForm->getElement('h1'); ?></p>
 			<p><?php echo $this->pageForm->getElement('headerTitle'); ?></p>
-        	<p <?php if($this->currentLang) echo 'class="label-prefix"'; ?>>
-                <?php if($this->currentLang): ?>
+        	<p <?php if($this->currentLang && !$this->pageForm->getElement('externalLinkStatus')->getValue()) echo 'class="label-prefix"'; ?>>
+                <?php if($this->currentLang && !$this->pageForm->getElement('externalLinkStatus')->getValue()): ?>
                 <label id="currentLang" class="prefix" for="url"><?php echo $this->currentLang; ?>/</label>
                 <?php endif; ?>
                 <?php echo $this->pageForm->getElement('url'); ?>
