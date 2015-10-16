@@ -39,7 +39,7 @@ class Widgets_Website_Website extends Widgets_Abstract {
                         if (null !== $langCode && isset($urls[$langCode]['url'])) {
                             $lang = ($code === $langDefault) ? '' : $code . '/';
                             $selected = (($code === $langDefault) || (isset($_COOKIE["localization"]) && $code === $_COOKIE["localization"]) ? 'selected' : '');
-                            $localizationContent .= '<option value="' . $this->_toasterOptions['websiteUrl'] . $lang . $urls[$langCode]['url'] . '"' . $selected . '>' . '<img class="lang-link" src="' . $this->_toasterOptions['websiteUrl'] . 'system/images/flags/' . $code . '.png" alt="' . $name . '" border="0">' . $name . '</option> ';
+                            $localizationContent .= '<option value="' . $this->_toasterOptions['websiteUrl'] . $lang . $urls[$langCode]['url'] . '"' . $selected . '>' . $name . '</option> ';
                         }
                     }
                     $localizationContent .= '</select>';
