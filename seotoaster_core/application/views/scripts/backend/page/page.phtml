@@ -195,10 +195,6 @@
                 showMessage(errorMessage, true, 3000);
             }
         });
-
-        $('#external-link-status').on('change', function() {
-            $('#external-link').prop('readonly', !$(this).is(':checked')).toggleClass('noedit');
-        });
 	});
 
     function checkOptions(){

@@ -34,9 +34,9 @@ function toggleExternalLink(){
                     $('#url').prop('placeholder','Your link to an external website');
                 }
             } else {
-                $('#url').val($('#original-page-url').val());
+                $('#url').val($('#original-page-url').val()).prop('placeholder','');
                 $('.template-section').css({'visibility':'visible'});
-                $('#url').prop('placeholder','');
+                $('#external-link').val('');
             }
         }
     }
