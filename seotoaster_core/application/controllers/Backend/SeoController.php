@@ -106,9 +106,14 @@ class Backend_SeoController extends Zend_Controller_Action {
                 }
 
 				if(intval($data['toUrl'])) {
-					$page = $pageMapper->find($data['toUrl']);
+					$page      = $pageMapper->find($data['toUrl']);
+					$locale    = new Zend_Locale($page->getLang());
+					$langToUrl = '';
+					if(Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault()) !== $page->getLang()) {
+						$langToUrl = $locale->getLanguage() . '/';
+					}
 					$redirect->setDomainTo($websiteUrl);
-					$redirect->setToUrl($page->getUrl());
+					$redirect->setToUrl($langToUrl . $page->getUrl());
 					$redirect->setPageId($page->getId());
 				}
 				else {
