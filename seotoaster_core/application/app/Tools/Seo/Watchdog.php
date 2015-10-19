@@ -126,15 +126,18 @@ class Tools_Seo_Watchdog implements Interfaces_Observer {
 		$cacheHelper   = Zend_Controller_Action_HelperBroker::getStaticHelper('Cache');
 		$websiteHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('Website');
 
-		if(!isset($sessionHelper->oldPageUrl) || !$sessionHelper->oldPageUrl) {
-			return null;
+		if(!$this->_object->getExternalLinkStatus()) {
+			if (!isset($sessionHelper->oldPageUrl) || !$sessionHelper->oldPageUrl) {
+				return null;
+			}
+			if ($sessionHelper->oldPageUrl == $this->_object->getUrl()) {
+				return null;
+			}
 		}
 
-		if($sessionHelper->oldPageUrl == $this->_object->getUrl()) {
-			return null;
-		}
+		$newUrl = $this->_object->getExternalLinkStatus() ? $this->_object->getExternalLink() : $this->_object->getUrl();
 
-		$mapper->deleteByRedirect($this->_object->getUrl(), $sessionHelper->oldPageUrl);
+		$mapper->deleteByRedirect($newUrl, $sessionHelper->oldPageUrl);
 
         $pageLangPrefix = '';
         if($this->_object->getLang() !== Zend_Locale::getLocaleToTerritory(Tools_Localization_Tools::getLangDefault())){
@@ -144,10 +147,15 @@ class Tools_Seo_Watchdog implements Interfaces_Observer {
 
 		$redirect = new Application_Model_Models_Redirect();
 		$redirect->setFromUrl($pageLangPrefix . $sessionHelper->oldPageUrl);
-		$redirect->setToUrl($pageLangPrefix . $this->_object->getUrl());
-		$redirect->setPageId($this->_object->getId());
 		$redirect->setDomainFrom($websiteHelper->getUrl());
-		$redirect->setDomainTo($websiteHelper->getUrl());
+		if(!$this->_object->getExternalLinkStatus()){
+			$redirect->setToUrl($pageLangPrefix . $this->_object->getUrl());
+			$redirect->setDomainTo($websiteHelper->getUrl());
+		} else {
+			$redirect->setToUrl(Tools_System_Tools::getUrlPath($newUrl));
+			$redirect->setDomainTo(Tools_System_Tools::getUrlScheme($newUrl) . '://' . Tools_System_Tools::getUrlHost($newUrl) . '/');
+		}
+		$redirect->setPageId($this->_object->getId());
 		$redirect->setLang($this->_object->getLang());
 		$mapper->save($redirect);
 
